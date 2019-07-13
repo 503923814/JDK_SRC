@@ -38,6 +38,7 @@ import java.util.function.Consumer;
  *
  * <p>This implementation provides guaranteed log(n) time cost for the
  * {@code containsKey}, {@code get}, {@code put} and {@code remove}
+ * 算法是Cormen、Leiserson和Rivest的<em>算法导论 </em>中的算法的改编。
  * operations.  Algorithms are adaptations of those in Cormen, Leiserson, and
  * Rivest's <em>Introduction to Algorithms</em>.
  *
@@ -120,9 +121,11 @@ public class TreeMap<K,V>
      */
     private final Comparator<? super K> comparator;
 
+    // 根节点
     private transient Entry<K,V> root;
 
     /**
+     * entries的数量
      * The number of entries in the tree
      */
     private transient int size = 0;
@@ -130,6 +133,9 @@ public class TreeMap<K,V>
     /**
      * The number of structural modifications to the tree.
      */
+    // 记录treeMap修改的次数。 只有put、remove、clear 都会加1, get不会
+    // 注意： 1、put(key, value) 虽然value值会改变，但是modCount 不会增加；
+    //       2、删除的key不存在，modCount 不会增加。
     private transient int modCount = 0;
 
     /**
@@ -350,6 +356,7 @@ public class TreeMap<K,V>
         Entry<K,V> p = root;
         while (p != null) {
             int cmp = k.compareTo(p.key);
+            // 小于找左边，大于找右边，等于的时候返回
             if (cmp < 0)
                 p = p.left;
             else if (cmp > 0)
@@ -386,6 +393,7 @@ public class TreeMap<K,V>
     }
 
     /**
+     * 获取大于等于key的最小的元素
      * Gets the entry corresponding to the specified key; if no such entry
      * exists, returns the entry for the least key greater than the specified
      * key; if no such entry exists (i.e., the greatest key in the Tree is less
@@ -396,6 +404,7 @@ public class TreeMap<K,V>
         while (p != null) {
             int cmp = compare(key, p.key);
             if (cmp < 0) {
+                // 当key比p.key小的时候，继续找比p小的元素
                 if (p.left != null)
                     p = p.left;
                 else
@@ -404,6 +413,15 @@ public class TreeMap<K,V>
                 if (p.right != null) {
                     p = p.right;
                 } else {
+                    //             A
+                    //            /
+                    //           B           B.key 一定比key大，所以才会找C，找到C后发现C.key小于key，所以得找C右边的元素，
+                    //          /              发现C右边的最大元素E的E.key小于key，所以只能回去找B，B才是大于key的最小元素
+                    //         C
+                    //          \
+                    //           D
+                    //            \
+                    //             E
                     Entry<K,V> parent = p.parent;
                     Entry<K,V> ch = p;
                     while (parent != null && ch == parent.right) {
@@ -413,12 +431,14 @@ public class TreeMap<K,V>
                     return parent;
                 }
             } else
+                // 相等，直接返回
                 return p;
         }
         return null;
     }
 
     /**
+     * 获取小于key的最大元素
      * Gets the entry corresponding to the specified key; if no such entry
      * exists, returns the entry for the greatest key less than the specified
      * key; if no such entry exists, returns {@code null}.
@@ -428,6 +448,7 @@ public class TreeMap<K,V>
         while (p != null) {
             int cmp = compare(key, p.key);
             if (cmp > 0) {
+                // key 比p.key 大，所以继续找比p大的元素
                 if (p.right != null)
                     p = p.right;
                 else
@@ -436,6 +457,15 @@ public class TreeMap<K,V>
                 if (p.left != null) {
                     p = p.left;
                 } else {
+                    //           A
+                    //            \
+                    //             B        key 一定大于B.key，所以才会找C，找到C的时候发现C.key大于key，不满足条件了，所以
+                    //              \      在C的左子树找更小的元素，发现左子树最小的元素E，E.key还是大于key，那么只能回去找B了
+                    //               C
+                    //              /
+                    //             D
+                    //            /
+                    //           E
                     Entry<K,V> parent = p.parent;
                     Entry<K,V> ch = p;
                     while (parent != null && ch == parent.left) {
@@ -445,6 +475,7 @@ public class TreeMap<K,V>
                     return parent;
                 }
             } else
+                // 相等，直接返回
                 return p;
 
         }
@@ -457,6 +488,7 @@ public class TreeMap<K,V>
      * key greater than the specified key; if no such entry exists
      * returns {@code null}.
      */
+    // 和 getCeilingEntry()方法相比，少了等于的时候返回，其他都一样。即必须比 key大，等于也不行
     final Entry<K,V> getHigherEntry(K key) {
         Entry<K,V> p = root;
         while (p != null) {
@@ -488,6 +520,7 @@ public class TreeMap<K,V>
      * no such entry exists (i.e., the least key in the Tree is greater than
      * the specified key), returns {@code null}.
      */
+    // 和 getFloorEntry()方法相比，少了等于的时候返回，其他都一样。即必须比 key小，等于也不行
     final Entry<K,V> getLowerEntry(K key) {
         Entry<K,V> p = root;
         while (p != null) {
@@ -522,6 +555,7 @@ public class TreeMap<K,V>
      * @param key key with which the specified value is to be associated
      * @param value value to be associated with the specified key
      *
+     *              返回key映射的原来的值
      * @return the previous value associated with {@code key}, or
      *         {@code null} if there was no mapping for {@code key}.
      *         (A {@code null} return can also indicate that the map
@@ -535,6 +569,7 @@ public class TreeMap<K,V>
     public V put(K key, V value) {
         Entry<K,V> t = root;
         if (t == null) {
+            // 类型以及null检查，null 报错空指针
             compare(key, key); // type (and possibly null) check
 
             root = new Entry<>(key, value, null);
@@ -546,6 +581,7 @@ public class TreeMap<K,V>
         Entry<K,V> parent;
         // split comparator and comparable paths
         Comparator<? super K> cpr = comparator;
+        // 使用comparator进行比较
         if (cpr != null) {
             do {
                 parent = t;
@@ -559,6 +595,7 @@ public class TreeMap<K,V>
             } while (t != null);
         }
         else {
+            // 使用元素的自然顺序进行比较
             if (key == null)
                 throw new NullPointerException();
             @SuppressWarnings("unchecked")
@@ -571,17 +608,28 @@ public class TreeMap<K,V>
                 else if (cmp > 0)
                     t = t.right;
                 else
+                    // 相等
+                    // V oldValue = this.value;
+                    // this.value = value;
+                    // return oldValue;
                     return t.setValue(value);
             } while (t != null);
         }
+
+        // t == null的时候结束循环，说明key在这棵树中不存在，此时parent就是要插入的元素的父节点
         Entry<K,V> e = new Entry<>(key, value, parent);
+        // 修改parent的子节点
         if (cmp < 0)
             parent.left = e;
         else
             parent.right = e;
+
+        // 插入后红黑树修复
         fixAfterInsertion(e);
+
         size++;
         modCount++;
+        // 插入之前key在这棵树中不存在，所以返回null
         return null;
     }
 
@@ -605,6 +653,7 @@ public class TreeMap<K,V>
             return null;
 
         V oldValue = p.value;
+        // 删除p节点
         deleteEntry(p);
         return oldValue;
     }
@@ -615,6 +664,7 @@ public class TreeMap<K,V>
      */
     public void clear() {
         modCount++;
+        // 清空只要设置 size = 0; root = null
         size = 0;
         root = null;
     }
@@ -656,6 +706,7 @@ public class TreeMap<K,V>
     /**
      * @since 1.6
      */
+    // 获取最小的entry
     public Map.Entry<K,V> firstEntry() {
         return exportEntry(getFirstEntry());
     }
@@ -663,6 +714,7 @@ public class TreeMap<K,V>
     /**
      * @since 1.6
      */
+    // 获取最大的entry
     public Map.Entry<K,V> lastEntry() {
         return exportEntry(getLastEntry());
     }
@@ -670,6 +722,7 @@ public class TreeMap<K,V>
     /**
      * @since 1.6
      */
+    // 移除并返回与此映射中的最小键关联的键-值映射关系；如果映射为空，则返回 null。
     public Map.Entry<K,V> pollFirstEntry() {
         Entry<K,V> p = getFirstEntry();
         Map.Entry<K,V> result = exportEntry(p);
@@ -855,6 +908,7 @@ public class TreeMap<K,V>
      */
     public Collection<V> values() {
         Collection<V> vs = values;
+        // 返回类型是Values 类
         return (vs != null) ? vs : (values = new Values());
     }
 
@@ -975,6 +1029,7 @@ public class TreeMap<K,V>
     @Override
     public boolean replace(K key, V oldValue, V newValue) {
         Entry<K,V> p = getEntry(key);
+        // key映射的当前值等于 oldValue，才会使用newValue替换oldValue
         if (p!=null && Objects.equals(oldValue, p.value)) {
             p.value = newValue;
             return true;
@@ -1023,6 +1078,9 @@ public class TreeMap<K,V>
     // View class support
 
     class Values extends AbstractCollection<V> {
+
+        // 每次调用 iteretor() 方法，会创建一个 ValueIterator(getFirstEntry())，
+        // 并实时获取最小的元素传入进去
         public Iterator<V> iterator() {
             return new ValueIterator(getFirstEntry());
         }
@@ -1111,11 +1169,15 @@ public class TreeMap<K,V>
     }
 
     static final class KeySet<E> extends AbstractSet<E> implements NavigableSet<E> {
+
+        // new KeySet<>(this) --> m 即 treeMap的对象
         private final NavigableMap<E, ?> m;
         KeySet(NavigableMap<E,?> map) { m = map; }
 
         public Iterator<E> iterator() {
             if (m instanceof TreeMap)
+                // new KeyIterator(getFirstEntry());
+                // 创建并返回KeyIterator，并实时传入最小的元素
                 return ((TreeMap<E,?>)m).keyIterator();
             else
                 return ((TreeMap.NavigableSubMap<E,?>)m).keyIterator();
@@ -1184,9 +1246,13 @@ public class TreeMap<K,V>
     /**
      * Base class for TreeMap Iterators
      */
+    // EntryIterator、ValueIterator、KeyIterator、DescendingKeyIterator 都会继承这个类
     abstract class PrivateEntryIterator<T> implements Iterator<T> {
+        // next -> 构造方法初始化时，赋值为treeMap中最小的元素，然后迭代指向下一个元素
         Entry<K,V> next;
+        // 最后返回的元素
         Entry<K,V> lastReturned;
+        // 当前treeMap修改的次数，只有put、remove、clear 都会加1, get不会
         int expectedModCount;
 
         PrivateEntryIterator(Entry<K,V> first) {
@@ -1195,27 +1261,33 @@ public class TreeMap<K,V>
             next = first;
         }
 
+        // 判断是否还有元素，迭代时就已经先把下一个元素先获取出来了，以便判断
         public final boolean hasNext() {
             return next != null;
         }
 
+        // 获取下一个元素
         final Entry<K,V> nextEntry() {
             Entry<K,V> e = next;
             if (e == null)
                 throw new NoSuchElementException();
             if (modCount != expectedModCount)
+                // treeMap的结构已经被修改了
                 throw new ConcurrentModificationException();
+            // successor(e) 获取大于e的最小的元素
             next = successor(e);
             lastReturned = e;
             return e;
         }
 
+        // 获取上一个元素
         final Entry<K,V> prevEntry() {
             Entry<K,V> e = next;
             if (e == null)
                 throw new NoSuchElementException();
             if (modCount != expectedModCount)
                 throw new ConcurrentModificationException();
+            // 获取比t小的最大的元素
             next = predecessor(e);
             lastReturned = e;
             return e;
@@ -1249,6 +1321,7 @@ public class TreeMap<K,V>
             super(first);
         }
         public V next() {
+            // 返回entry.value
             return nextEntry().value;
         }
     }
@@ -1258,6 +1331,7 @@ public class TreeMap<K,V>
             super(first);
         }
         public K next() {
+            // 返回 entry.key
             return nextEntry().key;
         }
     }
@@ -1303,6 +1377,7 @@ public class TreeMap<K,V>
      * Return SimpleImmutableEntry for entry, or null if null
      */
     static <K,V> Map.Entry<K,V> exportEntry(TreeMap.Entry<K,V> e) {
+        // 只是把entry的键值对设置到新的对象，不能直接把entry返回
         return (e == null) ? null :
             new AbstractMap.SimpleImmutableEntry<>(e);
     }
@@ -1592,6 +1667,7 @@ public class TreeMap<K,V>
 
         public final NavigableSet<K> navigableKeySet() {
             KeySet<K> nksv = navigableKeySetView;
+            // 返回TreeMap.KeySet的一个对象
             return (nksv != null) ? nksv :
                 (navigableKeySetView = new TreeMap.KeySet<>(this));
         }
@@ -1767,7 +1843,7 @@ public class TreeMap<K,V>
 
         // Implement minimal Spliterator as KeySpliterator backup
         final class SubMapKeyIterator extends SubMapIterator<K>
-            implements Spliterator<K> {
+                implements Spliterator<K> {
             SubMapKeyIterator(TreeMap.Entry<K,V> first,
                               TreeMap.Entry<K,V> fence) {
                 super(first, fence);
@@ -2045,7 +2121,7 @@ public class TreeMap<K,V>
      * Node in the Tree.  Doubles as a means to pass key-value pairs back to
      * user (see Map.Entry).
      */
-
+    // TreeMap的 entry
     static final class Entry<K,V> implements Map.Entry<K,V> {
         K key;
         V value;
@@ -2118,6 +2194,7 @@ public class TreeMap<K,V>
      * Returns the first Entry in the TreeMap (according to the TreeMap's
      * key-sort function).  Returns null if the TreeMap is empty.
      */
+    // 返回最小的元素
     final Entry<K,V> getFirstEntry() {
         Entry<K,V> p = root;
         if (p != null)
@@ -2130,6 +2207,7 @@ public class TreeMap<K,V>
      * Returns the last Entry in the TreeMap (according to the TreeMap's
      * key-sort function).  Returns null if the TreeMap is empty.
      */
+    // 获取最大的值
     final Entry<K,V> getLastEntry() {
         Entry<K,V> p = root;
         if (p != null)
@@ -2141,15 +2219,36 @@ public class TreeMap<K,V>
     /**
      * Returns the successor of the specified Entry, or null if no such.
      */
+    // 返回比t大的最小的元素。而且是从t节点开始查找，用于迭代。精妙啊
+
+    //           B
+    //          /              1、迭代开始时，第一个元素是最小的元素C，然后调用successor(C)方法，传入C，
+    //         C                C的有右元素D，然后D的左元素不为空，循环获取到G并返回；
+    //          \              2、调用successor(G)方法，G没有右元素了，ch = G, parent = F, ch != parent.right,
+    //           D                所以返回F
+    //          / \            3、然后继续迭代返回 D -> E -> B
+    //         F   E
+    //        /
+    //       G
     static <K,V> TreeMap.Entry<K,V> successor(Entry<K,V> t) {
         if (t == null)
             return null;
         else if (t.right != null) {
+            // 删除元素的时候，左右子树都不为空，才会调用这个方法
             Entry<K,V> p = t.right;
             while (p.left != null)
                 p = p.left;
             return p;
         } else {
+            //             A
+            //            /
+            //           B
+            //          /              如果t是E，则返回B
+            //         C
+            //          \
+            //           D
+            //            \
+            //             E
             Entry<K,V> p = t.parent;
             Entry<K,V> ch = t;
             while (p != null && ch == p.right) {
@@ -2163,6 +2262,17 @@ public class TreeMap<K,V>
     /**
      * Returns the predecessor of the specified Entry, or null if no such.
      */
+    // 获取比t小的最大的元素
+
+    //         C                1、迭代开始时，第一个元素是最大的元素E，然后调用predecessor(E)方法，传入E，
+    //          \                  E的左元素F不为空，循环获取到H元素;
+    //           D              2、调用predecessor(H)方法，H没有左元素了，ch = H, parent = F, ch != parent.left,
+    //          / \                所以返回F；
+    //         I   E            3、继续迭代返回 D -> I -> J -> C
+    //        /   /
+    //       J   F
+    //            \
+    //             H
     static <K,V> Entry<K,V> predecessor(Entry<K,V> t) {
         if (t == null)
             return null;
@@ -2214,19 +2324,28 @@ public class TreeMap<K,V>
     }
 
     /** From CLR */
+    // 等价rotateWithRightChild
     private void rotateLeft(Entry<K,V> p) {
+        // p -> k1
         if (p != null) {
+            // r -> k2
             Entry<K,V> r = p.right;
             p.right = r.left;
             if (r.left != null)
+                // 修改r.left的父亲
                 r.left.parent = p;
             r.parent = p.parent;
             if (p.parent == null)
+                // p没有父节点，即P是原来的根节点，然后把根节点变成r
                 root = r;
             else if (p.parent.left == p)
+                // 当p是G节点的左元素，修改G节点的左元素为r
                 p.parent.left = r;
             else
+                // 当p是G节点的右元素，修改G节点的右元素为r
                 p.parent.right = r;
+
+            // 最后才能修改p和r)
             r.left = p;
             p.parent = r;
         }
@@ -2251,28 +2370,75 @@ public class TreeMap<K,V>
 
     /** From CLR */
     private void fixAfterInsertion(Entry<K,V> x) {
+        // x 插入后的新元素
         x.color = RED;
 
+        // parent.color == RED，则两个连续的红色节点，自底向上修复
         while (x != null && x != root && x.parent.color == RED) {
+            // parentOf(x) -> P节点
+            // parentOf(parentOf(x)) -> G(grand)节点
+
+            // P是G的左节点
             if (parentOf(x) == leftOf(parentOf(parentOf(x)))) {
+                // y -> G的右节点，即P的兄弟节点S
                 Entry<K,V> y = rightOf(parentOf(parentOf(x)));
+
                 if (colorOf(y) == RED) {
+                    // 1.如果兄弟节点S是红色的
+
+//                   A(b)                            A(b)                                A(b)
+//                  /                                /                                   /
+//                B(b)                             B(b)                                B(r)
+//               /   \                            /   \        Gr的兄弟节点D节点        /   \
+//            Gr(r)  D(r)      上溯              Gr(r)  D(r)    是红色的             Gr(b)  D(b)
+//            /    \           ====>            /    \         ===========>          /  \
+//          G(b)   E(b)                      G(r)   E(b)        不能通过旋转得到    G(r) E(b)
+//          /  \                             /  \               平衡，所以          /  \
+//        P(r) S(r)                        P(b) S(b)            继续上溯          P(b) S(b)
+//        /                                /                                    /
+//      C(r)                             C(r)                                 C(r)
+
+                    // 这种情况不需要旋转，原本G的两个子节点P和S是红色的，现在把P和S变成黑色，G变成红色的，
+                    // 然后把x指向G，继续判断G的父节点Gr是否是红色.因为Gr还是红色的，且Gr的兄弟节点D是红色，所以继续上溯，
+                    // 直到没有两个连续的红色节点，或者父节点的兄弟节点是黑色，那么通过旋转得到平衡， 比如：
+                    // 如果Gr的兄弟节点D是黑色，那么可以通过旋转得到平衡，而不用继续上溯。最坏的情况下到达根节点
                     setColor(parentOf(x), BLACK);
                     setColor(y, BLACK);
                     setColor(parentOf(parentOf(x)), RED);
                     x = parentOf(parentOf(x));
                 } else {
+
+                    //  2.P的兄弟节点S是黑色的
+
+                    //       G(b)                                   G(b)                   C(b)
+                    //      /  \                                   /   \                   /  \
+                    //    P(r) S(b)   ====>  rotateLeft(x)       C(r)   S(b)   ===>      P(r) G(r)
+                    //      \                                    /                              \
+                    //      C(r)                               P(r)                             S(b)
+
                     if (x == rightOf(parentOf(x))) {
+                        // 之字型(左右旋转)，需要双旋转
+                        // 此时x指向p节点
                         x = parentOf(x);
+                        // 向左旋转 rotateLeft() -> rotateWithRightChild()
                         rotateLeft(x);
                     }
+                    // 指向的始终的G的孙子节点
                     setColor(parentOf(x), BLACK);
                     setColor(parentOf(parentOf(x)), RED);
+
+                    // 向右旋转 rotateRight() -> rotateWithLeftChild();
                     rotateRight(parentOf(parentOf(x)));
                 }
-            } else {
+            } else {    // 对称情况
+
+                // P是G的右节点·
+
+                // y -> G的左节点，即P的兄弟节点S
                 Entry<K,V> y = leftOf(parentOf(parentOf(x)));
+
                 if (colorOf(y) == RED) {
+                    // 如果P的兄弟节点是红色的
                     setColor(parentOf(x), BLACK);
                     setColor(y, BLACK);
                     setColor(parentOf(parentOf(x)), RED);
@@ -2301,6 +2467,7 @@ public class TreeMap<K,V>
         // If strictly internal, copy successor's element to p and then make p
         // point to successor.
         if (p.left != null && p.right != null) {
+            // 找出右子树中最小的元素
             Entry<K,V> s = successor(p);
             p.key = s.key;
             p.value = s.value;
@@ -2310,10 +2477,14 @@ public class TreeMap<K,V>
         // Start fixup at replacement node, if it exists.
         Entry<K,V> replacement = (p.left != null ? p.left : p.right);
 
+        // p是叶子的时候 replacement == null
         if (replacement != null) {
+            // 1. 删除节点有且只有一个红孩子 (因为删除的节点最多只会有一个儿子，红色左节点或者红色右节点都有可能)
+
             // Link replacement to parent
             replacement.parent = p.parent;
             if (p.parent == null)
+                // p.parent == null 说明p就是根节点
                 root = replacement;
             else if (p == p.parent.left)
                 p.parent.left  = replacement;
@@ -2325,11 +2496,18 @@ public class TreeMap<K,V>
 
             // Fix replacement
             if (p.color == BLACK)
+                // 删除的节点是黑色节点，且p有且只有一个红儿子
+                // replacement不为空，那么replacement一定是红色的节点，这时候只要把replacement的颜色变成黑色就可以了
                 fixAfterDeletion(replacement);
         } else if (p.parent == null) { // return if we are the only node.
+            // 2. 删除的节点是根节点
             root = null;
         } else { //  No children. Use self as phantom replacement and unlink.
+            // 3.删除节点没有儿子
+
+            // p是要删除的元素
             if (p.color == BLACK)
+                // 3.1 若删除的节点是
                 fixAfterDeletion(p);
 
             if (p.parent != null) {
@@ -2337,42 +2515,125 @@ public class TreeMap<K,V>
                     p.parent.left = null;
                 else if (p == p.parent.right)
                     p.parent.right = null;
+                // 这个场景下 p没有儿子，所以只需要设置 parent = null 即可
                 p.parent = null;
             }
         }
     }
 
     /** From CLR */
+    // 删除修复，-- 删除的颜色是黑色的才会调用这个方法
     private void fixAfterDeletion(Entry<K,V> x) {
+        // x的颜色为红色的时候不会执行 while循环
         while (x != root && colorOf(x) == BLACK) {
             if (x == leftOf(parentOf(x))) {
+                // 删除的元素在父节点的左边
                 Entry<K,V> sib = rightOf(parentOf(x));
 
+                // 1. 若S的节点是红的，通过旋转可以把当前节点变成红色的
+//                    P(b)                          S(b)                      S(b)
+//                   /   \         第一步           /   \       第二步        /   \
+//                 D(b)  S(r)      ====>         P(r)  SR(b)    ====>       P(b)  SR(b)
+//                       /  \                    /  \                      /  \
+//                    SL(b) SR(b)              D(b) SL(b)                 D(r) SL(r)
+
                 if (colorOf(sib) == RED) {
+
+                    // 这里只完成了第一步，场景2会处理第二步
+                    // 旋转后的场景是：兄弟节点变成了黑色的，而父节点是红色，下面会处理这种场景
                     setColor(sib, BLACK);
                     setColor(parentOf(x), RED);
                     rotateLeft(parentOf(x));
                     sib = rightOf(parentOf(x));
                 }
 
+                // 2. D是黑色的，S的颜色也是黑色的，且S没有子节点。这种情况把D(D的颜色可以不设置，因为要直接删除了，
+                // 而且在这里不能修改D的颜色，如果修改了D的颜色，那么上溯就没办法平衡了)和S都变成红色,
+                // 然后上溯，最终通过旋转使该子树的黑色节点多一个，然后就平衡了，最坏的情况下到达根节点，使整棵树的黑色节点个数少1
+                //   2.1 注意： -- D和S颜色是黑色的，P颜色是红色的场景也是在这里处理
+
+
+//       -----------  以下是上溯到当前节点为红色节点，然后把红色节点变成黑色，完成平衡的过程。当然完成平衡的情况还有：
+//          兄弟节点是红色的或者兄弟节点的子节点有红色的，然后通过旋转完成平衡 ---------
+//        ------  以下可以看出为什么不能把D节点也设置成红色，如果把D节点设置成红色的，那么上溯过程中也会修改G节点，Gr节点的颜色，
+//          那么B节点的左子树就少了3个黑色节点，整棵树将无法被平衡 ------------
+
+//    1、 D节点要删除，S节点变成红色的，所以Gr的左子树少一个黑色节点，当前节点指向G，进行上溯处理；
+//    2、 G节点的兄弟节点E，及E的两个孩子都是黑色的，所以继续上溯，把E节点变成红色的，当前节点指向Gr，此时B的左子树少了一个黑色节点；
+//    3、 Gr的兄弟节点F节点及F的两个子节点都是黑色，所以继续上溯，把F节点变成红色，当前节点指向B，此时A的左子树少了一个黑色节点；
+//    4、 B节点的颜色是红色的，所以结束循环，把B的颜色变成黑色，此时A节点左右子树的黑色节点数相等，平衡完成。
+//                   A(b)                            A(b)                                A(b)
+//                  /                                /                                   /
+//                B(r)                             B(r)         因为兄弟节点             B(r)
+//               /   \                            /   \         E是黑色的，             /   \
+//            Gr(b)  F(b)      上溯              Gr(b) F(b)    且E的两个子节点        Gr(b)  F(b)
+//            /    \           ====>            /    \         ===========>          /  \
+//          G(b)   E(b)     当前节点指向G     G(b)   E(b)        也是黑色的，所以    G(b) E(r)
+//          /  \                             /  \               继续上溯, 当前      /  \
+//        D(b) S(b)                        D(b) S(r)            节点指向Gr        D(b) S(r)
+
+
+//                       A(b)                                      A(b)
+//                       /                                         /
+//                     B(r)                                      B(b)
+////   当前节点是Gr     /   \         继续上溯                    /   \
+//     ====>        Gr(b)  F(r)        ===>                   Gr(b)  F(r)
+//                   /  \           当前节点指向B，            /  \
+//                 G(b) E(r)        因为B节点是红色的，       G(b) E(r)
+//                 /  \             所以结束循环，把B节点    /  \
+//              D(b) S(r)            变成黑色的           D(b) S(r)
+
                 if (colorOf(leftOf(sib))  == BLACK &&
                     colorOf(rightOf(sib)) == BLACK) {
+
+                    // 把sib的颜色设成红色的
                     setColor(sib, RED);
+                    // x指向parent。
+                    // --上面情景1处理完成后 parent的颜色是红色的，所以会立马结束循环，
+                    //    结束循环后会把parent的颜色设置成黑的 -> setColor(x, BLACK); --
                     x = parentOf(x);
                 } else {
+
+                    // 3. S 的左节点是红色的，通过旋转和颜色变换把场景变成场景4
+//                    P(b)                         P(b)
+//                   /   \                         /   \
+//                 D(b)  S(b)      ====>         D(b)  SL(b)
+//                       /                               \
+//                    SL(r)                              S(R)
+
                     if (colorOf(rightOf(sib)) == BLACK) {
-                        setColor(leftOf(sib), BLACK);
-                        setColor(sib, RED);
-                        rotateRight(sib);
+                        setColor(leftOf(sib), BLACK); // 把SL颜色变成黑色的
+                        setColor(sib, RED);           // 把S颜色变成红的
+                        rotateRight(sib);             // 右旋
+                        // sib 指向上图的SL位置
                         sib = rightOf(parentOf(x));
                     }
-                    setColor(sib, colorOf(parentOf(x)));
+
+                    // 4. S的右节点颜色是红色的
+                    //   原理：旋转变色后右子树黑色节点个数不变，左子树黑色节点个数多了一个
+//                    P(b)                         S(b)
+//                   /   \                         /   \
+//                 D(b)  S(b)      ====>         P(b)  SR(b)
+//                         \                     /
+//                         SR(r)                D(r)
+
+//                    P(r)                         S(r)
+//                   /   \                         /   \
+//                 D(b)  S(b)      ====>         P(b)  SR(b)
+//                         \                     /
+//                         SR(r)                D(r)
+
+                    // 整个方法里都不设置D的颜色，因为要直接删除，设置颜色反而是做无用功
+                    setColor(sib, colorOf(parentOf(x)));   // P节点也可能是红的
                     setColor(parentOf(x), BLACK);
                     setColor(rightOf(sib), BLACK);
                     rotateLeft(parentOf(x));
+                    // 通过x = root 退出循环
                     x = root;
                 }
             } else { // symmetric
+                // 删除的元素在父节点的右边
+
                 Entry<K,V> sib = leftOf(parentOf(x));
 
                 if (colorOf(sib) == RED) {
