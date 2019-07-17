@@ -1250,7 +1250,7 @@ public class TreeMap<K,V>
     abstract class PrivateEntryIterator<T> implements Iterator<T> {
         // next -> 构造方法初始化时，赋值为treeMap中最小的元素，然后迭代指向下一个元素
         Entry<K,V> next;
-        // 最后返回的元素
+        // 最后返回的元素，用于迭代删除元素，iterator.remove(); 移除就是这个元素
         Entry<K,V> lastReturned;
         // 当前treeMap修改的次数，只有put、remove、clear 都会加1, get不会
         int expectedModCount;
@@ -1300,8 +1300,14 @@ public class TreeMap<K,V>
                 throw new ConcurrentModificationException();
             // deleted entries are replaced by their successors
             if (lastReturned.left != null && lastReturned.right != null)
+                // 删除元素的两个子节点都不为空时，使用右子树最小的元素的key 和 value替换
+                // 掉当前元素的key 和 value，然后地址不会改变，因此 next应该指向要删除的元素
+                // 的地址，否则原来右子树最小的元素就不会被遍历出来。而当左子树或者右子树为空时，
+                // 直接使用左儿子或者右儿子取代掉当前元素，所以不必修改 next指向的元素
                 next = lastReturned;
             deleteEntry(lastReturned);
+            // 修改expectedModCount = modeCount，使之不会抛出并发修改异常
+            // 这里不能使用expectedModCount--， 因为删除的元素不一定存在
             expectedModCount = modCount;
             lastReturned = null;
         }
@@ -2507,7 +2513,7 @@ public class TreeMap<K,V>
 
             // p是要删除的元素
             if (p.color == BLACK)
-                // 3.1 若删除的节点是
+                // 3.1 若删除的节点是黑色的
                 fixAfterDeletion(p);
 
             if (p.parent != null) {
@@ -2601,7 +2607,7 @@ public class TreeMap<K,V>
 //                       /                               \
 //                    SL(r)                              S(R)
 
-                    if (colorOf(rightOf(sib)) == BLACK) {
+                    if (colorOf(rightOf(sib)) == BLACK) { // 如果左右节点都是红色的，那么不需要旋转
                         setColor(leftOf(sib), BLACK); // 把SL颜色变成黑色的
                         setColor(sib, RED);           // 把S颜色变成红的
                         rotateRight(sib);             // 右旋
