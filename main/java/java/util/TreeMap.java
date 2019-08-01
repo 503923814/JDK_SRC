@@ -2607,7 +2607,7 @@ public class TreeMap<K,V>
 //                       /                               \
 //                    SL(r)                              S(R)
 
-                    if (colorOf(rightOf(sib)) == BLACK) { // 如果左右节点都是红色的，那么不需要旋转
+                    if (colorOf(rightOf(sib)) == BLACK) { // 如果左右节点都是红色的，那么只需要单旋转就行了
                         setColor(leftOf(sib), BLACK); // 把SL颜色变成黑色的
                         setColor(sib, RED);           // 把S颜色变成红的
                         rotateRight(sib);             // 右旋
@@ -2869,6 +2869,8 @@ public class TreeMap<K,V>
     }
 
     /**
+     * 目前，我们只支持基于spliterator的完整映射版本(以降序形式)，
+     * 否则依赖于默认值，因为子映射的大小估计将控制成本。
      * Currently, we support Spliterator-based versions only for the
      * full map, in either plain of descending form, otherwise relying
      * on defaults because size estimation for submaps would dominate
@@ -2907,12 +2909,19 @@ public class TreeMap<K,V>
     }
 
     /**
+     * 迭代从一个给定的origin 开始，一直到但不包括一个给定的fence(或null for end)
      * Base class for spliterators.  Iteration starts at a given
      * origin and continues up to but not including a given fence (or
+     * 在顶层，对于升序情况，第一个分割使用根作为左栅栏/右原点
      * null for end).  At top-level, for ascending cases, the first
-     * split uses the root as left-fence/right-origin. From there,
+     * split uses the root as left-fence/right-origin.
+     * 从这里开始，右拆分用它的左子元素替换当前的栅栏，同时也充当了spli -off spliterator的原点。
+     * From there,
      * right-hand splits replace the current fence with its left
      * child, also serving as origin for the split-off spliterator.
+     * 降序版本将原点放在末尾，并反转升序拆分规则。这个基类对于方向性，
+     * 或者顶级的spliterator是否覆盖整个树，都是非关键的。这意味着实际的分割机制位于子类中。
+     * 一些子类trySplit方法是相同的(除了返回类型)，但是不能很好地分解。
      * Left-hands are symmetric. Descending versions place the origin
      * at the end and invert ascending split rules.  This base class
      * is non-commital about directionality, or whether the top-level
@@ -2922,7 +2931,10 @@ public class TreeMap<K,V>
      * not nicely factorable.
      *
      * Currently, subclass versions exist only for the full map
-     * (including descending keys via its descendingMap).  Others are
+     * (including descending keys via its descendingMap).
+     * 其他方法是可能的，但目前不值得使用，因为subMap需要O(n)计算来确定大小，
+     * 这在很大程度上限制了使用自定义spliterator与默认机制的潜在加速。
+     * Others are
      * possible but currently not worthwhile because submaps require
      * O(n) computations to determine size, which substantially limits
      * potential speed-ups of using custom Spliterators versus default
@@ -2933,12 +2945,14 @@ public class TreeMap<K,V>
      */
     static class TreeMapSpliterator<K,V> {
         final TreeMap<K,V> tree;
+        // 根据构造方法传入的est来判断 current = (s == -1) ? t.getFirstEntry() : t.getLastEntry();
         TreeMap.Entry<K,V> current; // traverser; initially first node in range
         TreeMap.Entry<K,V> fence;   // one past last, or null
         int side;                   // 0: top, -1: is a left split, +1: right
         int est;                    // size estimate (exact only for top-level)
         int expectedModCount;       // for CME checks
 
+        // this(treeMap), null, null, 0, -1, 0
         TreeMapSpliterator(TreeMap<K,V> tree,
                            TreeMap.Entry<K,V> origin, TreeMap.Entry<K,V> fence,
                            int side, int est, int expectedModCount) {
@@ -2950,12 +2964,17 @@ public class TreeMap<K,V>
             this.expectedModCount = expectedModCount;
         }
 
-        final int getEstimate() { // force initialization
+        // begin()方法会调用spliterator.getExactSizeIfKnown() -> wrappedSink.begin(spliterator.getExactSizeIfKnown());
+        // getExactSizeIfKnown()会调用这个方法(characteristics() & SIZED) == 0 ? -1L : estimateSize();
+        final int getEstimate() { // force initialization  促使初始化
             int s; TreeMap<K,V> t;
+            // est 构造方法传入 -1
             if ((s = est) < 0) {
                 if ((t = tree) != null) {
+                    // getFirstEntry() 返回最小的元素
+                    // getLastEntry() 返回最大的元素
                     current = (s == -1) ? t.getFirstEntry() : t.getLastEntry();
-                    s = est = t.size;
+                    s = est = t.size;   // est = t.size
                     expectedModCount = t.modCount;
                 }
                 else
@@ -2972,6 +2991,8 @@ public class TreeMap<K,V>
     static final class KeySpliterator<K,V>
         extends TreeMapSpliterator<K,V>
         implements Spliterator<K> {
+
+        // new KeySpliterator<K,V>(this, null, null, 0, -1, 0);
         KeySpliterator(TreeMap<K,V> tree,
                        TreeMap.Entry<K,V> origin, TreeMap.Entry<K,V> fence,
                        int side, int est, int expectedModCount) {
@@ -2979,11 +3000,15 @@ public class TreeMap<K,V>
         }
 
         public KeySpliterator<K,V> trySplit() {
+            // est 是父类的属性
             if (est < 0)
                 getEstimate(); // force initialization
-            int d = side;
+
+            // side -> 0: top, -1: is a left split, +1: right
+            int d = side;   // side = 0
             TreeMap.Entry<K,V> e = current, f = fence,
-                s = ((e == null || e == f) ? null :      // empty
+                    // d == 0 -> s = tree.root
+                s = ((e == null || e == f) ? null :      // empty   e == f，因为不包括f，所以为空
                      (d == 0)              ? tree.root : // was top
                      (d >  0)              ? e.right :   // was right
                      (d <  0 && f != null) ? f.left :    // was left
@@ -2991,32 +3016,49 @@ public class TreeMap<K,V>
             if (s != null && s != e && s != f &&
                 tree.compare(e.key, s.key) < 0) {        // e not already past s
                 side = 1;
+                // 初始化后 est = size
+                // current = s, 说明遍历到 s这个点了
                 return new KeySpliterator<>
                     (tree, e, current = s, -1, est >>>= 1, expectedModCount);
             }
             return null;
         }
 
+        // AbstractPipeline 的 copyInto() 方法会调用这个方法
         public void forEachRemaining(Consumer<? super K> action) {
             if (action == null)
                 throw new NullPointerException();
+            // 调这个方法之前已经调用过getEstimate() 方法了
             if (est < 0)
                 getEstimate(); // force initialization
             TreeMap.Entry<K,V> f = fence, e, p, pl;
             if ((e = current) != null && e != f) {
-                current = f; // exhaust
+                current = f; // exhaust  遍历完了 current就到 f 的位置了
                 do {
+                    // action传入的是wrappedSink, wrappedSink是第一个中间操作的sink，如果没有中间操作的sink，则为最后结束的sink
+                    // sink的accept方法里面会继续调用下一个sink的 accept()方法
                     action.accept(e.key);
                     if ((p = e.right) != null) {
                         while ((pl = p.left) != null)
                             p = pl;
                     }
+
                     else {
+                        //             A
+                        //            /
+                        //           B
+                        //          /              如果e是E，则返回B
+                        //         C
+                        //          \
+                        //           D
+                        //            \
+                        //             E
                         while ((p = e.parent) != null && e == p.right)
                             e = p;
                     }
                 } while ((e = p) != null && e != f);
                 if (tree.modCount != expectedModCount)
+                    // 判断map 结构是否被修改过
                     throw new ConcurrentModificationException();
             }
         }
@@ -3037,6 +3079,9 @@ public class TreeMap<K,V>
         }
 
         public int characteristics() {
+            //  SIZED = 0x00000040 -> 0100 0000;  DISTINCT = 0x00000001 -> 0000 0001;
+            // SORTED = 0x00000004 -> 0000 0100 ; ORDERED = 0x00000010 -> 0001 0000
+            // 如果 side 不为0, 则返回 0101 0101。side 构造方法传入的初始值为 0
             return (side == 0 ? Spliterator.SIZED : 0) |
                 Spliterator.DISTINCT | Spliterator.SORTED | Spliterator.ORDERED;
         }
@@ -3195,6 +3240,7 @@ public class TreeMap<K,V>
     static final class EntrySpliterator<K,V>
         extends TreeMapSpliterator<K,V>
         implements Spliterator<Map.Entry<K,V>> {
+
         EntrySpliterator(TreeMap<K,V> tree,
                          TreeMap.Entry<K,V> origin, TreeMap.Entry<K,V> fence,
                          int side, int est, int expectedModCount) {
