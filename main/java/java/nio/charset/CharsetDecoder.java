@@ -28,13 +28,10 @@
 package java.nio.charset;
 
 import java.nio.Buffer;
-import java.nio.ByteBuffer;
-import java.nio.CharBuffer;
 import java.nio.BufferOverflowException;
 import java.nio.BufferUnderflowException;
-import java.lang.ref.WeakReference;
-import java.nio.charset.CoderMalfunctionError;                  // javadoc
-import java.util.Arrays;
+import java.nio.ByteBuffer;
+import java.nio.CharBuffer;
 
 
 /**
@@ -66,7 +63,7 @@ import java.util.Arrays;
  *   flush any internal state to the output buffer. </p></li>
  *
  * </ol>
- *
+ * <p>
  * Each invocation of the {@link #decode decode} method will decode as many
  * bytes as possible from the input buffer, writing the resulting characters
  * to the output buffer.  The {@link #decode decode} method returns when more
@@ -93,15 +90,15 @@ import java.util.Arrays;
  * the returned {@link CoderResult} object, or {@linkplain CodingErrorAction#REPLACE
  * replace} the erroneous input with the current value of the
  * replacement string.  The replacement
- *
-
-
-
-
-
+ * <p>
+ * <p>
+ * <p>
+ * <p>
+ * <p>
+ * <p>
  * has the initial value <tt>"&#92;uFFFD"</tt>;
-
- *
+ * <p>
+ * <p>
  * its value may be changed via the {@link #replaceWith(java.lang.String)
  * replaceWith} method.
  *
@@ -123,15 +120,13 @@ import java.util.Arrays;
  * <p> Instances of this class are not safe for use by multiple concurrent
  * threads.  </p>
  *
- *
  * @author Mark Reinhold
  * @author JSR-51 Expert Group
- * @since 1.4
- *
  * @see ByteBuffer
  * @see CharBuffer
  * @see Charset
  * @see CharsetEncoder
+ * @since 1.4
  */
 
 public abstract class CharsetDecoder {
@@ -142,64 +137,53 @@ public abstract class CharsetDecoder {
 
     private String replacement;
     private CodingErrorAction malformedInputAction
-        = CodingErrorAction.REPORT;
+            = CodingErrorAction.REPORT;
     private CodingErrorAction unmappableCharacterAction
-        = CodingErrorAction.REPORT;
+            = CodingErrorAction.REPORT;
 
     // Internal states
     //
-    private static final int ST_RESET   = 0;
-    private static final int ST_CODING  = 1;
-    private static final int ST_END     = 2;
+    private static final int ST_RESET = 0;
+    private static final int ST_CODING = 1;
+    private static final int ST_END = 2;
     private static final int ST_FLUSHED = 3;
 
     private int state = ST_RESET;
 
     private static String stateNames[]
-        = { "RESET", "CODING", "CODING_END", "FLUSHED" };
+            = {"RESET", "CODING", "CODING_END", "FLUSHED"};
 
 
     /**
      * Initializes a new decoder.  The new decoder will have the given
      * chars-per-byte and replacement values.
      *
-     * @param  cs
-     *         The charset that created this decoder
-     *
-     * @param  averageCharsPerByte
-     *         A positive float value indicating the expected number of
-     *         characters that will be produced for each input byte
-     *
-     * @param  maxCharsPerByte
-     *         A positive float value indicating the maximum number of
-     *         characters that will be produced for each input byte
-     *
-     * @param  replacement
-     *         The initial replacement; must not be <tt>null</tt>, must have
-     *         non-zero length, must not be longer than maxCharsPerByte,
-     *         and must be {@linkplain #isLegalReplacement legal}
-     *
-     * @throws  IllegalArgumentException
-     *          If the preconditions on the parameters do not hold
+     * @param cs                  The charset that created this decoder
+     * @param averageCharsPerByte A positive float value indicating the expected number of
+     *                            characters that will be produced for each input byte
+     * @param maxCharsPerByte     A positive float value indicating the maximum number of
+     *                            characters that will be produced for each input byte
+     * @param replacement         The initial replacement; must not be <tt>null</tt>, must have
+     *                            non-zero length, must not be longer than maxCharsPerByte,
+     *                            and must be {@linkplain #isLegalReplacement legal}
+     * @throws IllegalArgumentException If the preconditions on the parameters do not hold
      */
-    private
-    CharsetDecoder(Charset cs,
-                   float averageCharsPerByte,
-                   float maxCharsPerByte,
-                   String replacement)
-    {
+    private CharsetDecoder(Charset cs,
+                           float averageCharsPerByte,
+                           float maxCharsPerByte,
+                           String replacement) {
         this.charset = cs;
         if (averageCharsPerByte <= 0.0f)
             throw new IllegalArgumentException("Non-positive "
-                                               + "averageCharsPerByte");
+                    + "averageCharsPerByte");
         if (maxCharsPerByte <= 0.0f)
             throw new IllegalArgumentException("Non-positive "
-                                               + "maxCharsPerByte");
+                    + "maxCharsPerByte");
         if (!Charset.atBugLevel("1.4")) {
             if (averageCharsPerByte > maxCharsPerByte)
                 throw new IllegalArgumentException("averageCharsPerByte"
-                                                   + " exceeds "
-                                                   + "maxCharsPerByte");
+                        + " exceeds "
+                        + "maxCharsPerByte");
         }
         this.replacement = replacement;
         this.averageCharsPerByte = averageCharsPerByte;
@@ -212,33 +196,25 @@ public abstract class CharsetDecoder {
      * chars-per-byte values and its replacement will be the
      * string <tt>"&#92;uFFFD"</tt>.
      *
-     * @param  cs
-     *         The charset that created this decoder
-     *
-     * @param  averageCharsPerByte
-     *         A positive float value indicating the expected number of
-     *         characters that will be produced for each input byte
-     *
-     * @param  maxCharsPerByte
-     *         A positive float value indicating the maximum number of
-     *         characters that will be produced for each input byte
-     *
-     * @throws  IllegalArgumentException
-     *          If the preconditions on the parameters do not hold
+     * @param cs                  The charset that created this decoder
+     * @param averageCharsPerByte A positive float value indicating the expected number of
+     *                            characters that will be produced for each input byte
+     * @param maxCharsPerByte     A positive float value indicating the maximum number of
+     *                            characters that will be produced for each input byte
+     * @throws IllegalArgumentException If the preconditions on the parameters do not hold
      */
     protected CharsetDecoder(Charset cs,
                              float averageCharsPerByte,
-                             float maxCharsPerByte)
-    {
+                             float maxCharsPerByte) {
         this(cs,
-             averageCharsPerByte, maxCharsPerByte,
-             "\uFFFD");
+                averageCharsPerByte, maxCharsPerByte,
+                "\uFFFD");
     }
 
     /**
      * Returns the charset that created this decoder.
      *
-     * @return  This decoder's charset
+     * @return This decoder's charset
      */
     public final Charset charset() {
         return charset;
@@ -247,14 +223,12 @@ public abstract class CharsetDecoder {
     /**
      * Returns this decoder's replacement value.
      *
-     * @return  This decoder's current replacement,
-     *          which is never <tt>null</tt> and is never empty
+     * @return This decoder's current replacement,
+     * which is never <tt>null</tt> and is never empty
      */
     public final String replacement() {
 
         return replacement;
-
-
 
 
     }
@@ -266,23 +240,13 @@ public abstract class CharsetDecoder {
      * method, passing the new replacement, after checking that the new
      * replacement is acceptable.  </p>
      *
-     * @param  newReplacement  The replacement value
-     *
-
-     *         The new replacement; must not be <tt>null</tt>
-     *         and must have non-zero length
-
-
-
-
-
-
-
-     *
-     * @return  This decoder
-     *
-     * @throws  IllegalArgumentException
-     *          If the preconditions on the parameter do not hold
+     * @param newReplacement The replacement value
+     *                       <p>
+     *                       <p>
+     *                       The new replacement; must not be <tt>null</tt>
+     *                       and must have non-zero length
+     * @return This decoder
+     * @throws IllegalArgumentException If the preconditions on the parameter do not hold
      */
     public final CharsetDecoder replaceWith(String newReplacement) {
         if (newReplacement == null)
@@ -296,10 +260,6 @@ public abstract class CharsetDecoder {
         this.replacement = newReplacement;
 
 
-
-
-
-
         implReplaceWith(this.replacement);
         return this;
     }
@@ -311,49 +271,10 @@ public abstract class CharsetDecoder {
      * should be overridden by decoders that require notification of changes to
      * the replacement.  </p>
      *
-     * @param  newReplacement    The replacement value
+     * @param newReplacement The replacement value
      */
     protected void implReplaceWith(String newReplacement) {
     }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
     /**
@@ -371,12 +292,9 @@ public abstract class CharsetDecoder {
      * <p> This method invokes the {@link #implOnMalformedInput
      * implOnMalformedInput} method, passing the new action.  </p>
      *
-     * @param  newAction  The new action; must not be <tt>null</tt>
-     *
-     * @return  This decoder
-     *
-     * @throws IllegalArgumentException
-     *         If the precondition on the parameter does not hold
+     * @param newAction The new action; must not be <tt>null</tt>
+     * @return This decoder
+     * @throws IllegalArgumentException If the precondition on the parameter does not hold
      */
     public final CharsetDecoder onMalformedInput(CodingErrorAction newAction) {
         if (newAction == null)
@@ -393,15 +311,16 @@ public abstract class CharsetDecoder {
      * should be overridden by decoders that require notification of changes to
      * the malformed-input action.  </p>
      *
-     * @param  newAction  The new action
+     * @param newAction The new action
      */
-    protected void implOnMalformedInput(CodingErrorAction newAction) { }
+    protected void implOnMalformedInput(CodingErrorAction newAction) {
+    }
 
     /**
      * Returns this decoder's current action for unmappable-character errors.
      *
      * @return The current unmappable-character action, which is never
-     *         <tt>null</tt>
+     * <tt>null</tt>
      */
     public CodingErrorAction unmappableCharacterAction() {
         return unmappableCharacterAction;
@@ -413,16 +332,12 @@ public abstract class CharsetDecoder {
      * <p> This method invokes the {@link #implOnUnmappableCharacter
      * implOnUnmappableCharacter} method, passing the new action.  </p>
      *
-     * @param  newAction  The new action; must not be <tt>null</tt>
-     *
-     * @return  This decoder
-     *
-     * @throws IllegalArgumentException
-     *         If the precondition on the parameter does not hold
+     * @param newAction The new action; must not be <tt>null</tt>
+     * @return This decoder
+     * @throws IllegalArgumentException If the precondition on the parameter does not hold
      */
     public final CharsetDecoder onUnmappableCharacter(CodingErrorAction
-                                                      newAction)
-    {
+                                                              newAction) {
         if (newAction == null)
             throw new IllegalArgumentException("Null action");
         unmappableCharacterAction = newAction;
@@ -437,17 +352,18 @@ public abstract class CharsetDecoder {
      * should be overridden by decoders that require notification of changes to
      * the unmappable-character action.  </p>
      *
-     * @param  newAction  The new action
+     * @param newAction The new action
      */
-    protected void implOnUnmappableCharacter(CodingErrorAction newAction) { }
+    protected void implOnUnmappableCharacter(CodingErrorAction newAction) {
+    }
 
     /**
      * Returns the average number of characters that will be produced for each
      * byte of input.  This heuristic value may be used to estimate the size
      * of the output buffer required for a given input sequence.
      *
-     * @return  The average number of characters produced
-     *          per byte of input
+     * @return The average number of characters produced
+     * per byte of input
      */
     public final float averageCharsPerByte() {
         return averageCharsPerByte;
@@ -458,8 +374,8 @@ public abstract class CharsetDecoder {
      * byte of input.  This value may be used to compute the worst-case size
      * of the output buffer required for a given input sequence.
      *
-     * @return  The maximum number of characters that will be produced per
-     *          byte of input
+     * @return The maximum number of characters that will be produced per
+     * byte of input
      */
     public final float maxCharsPerByte() {
         return maxCharsPerByte;
@@ -517,7 +433,7 @@ public abstract class CharsetDecoder {
      *   ignored or replaced, as requested.  </p></li>
      *
      * </ul>
-     *
+     * <p>
      * In any case, if this method is to be reinvoked in the same decoding
      * operation then care should be taken to preserve any bytes remaining
      * in the input buffer so that they are available to the next invocation.
@@ -538,41 +454,29 @@ public abstract class CharsetDecoder {
      * method, interpreting its results, handling error conditions, and
      * reinvoking it as necessary.  </p>
      *
-     *
-     * @param  in
-     *         The input byte buffer
-     *
-     * @param  out
-     *         The output character buffer
-     *
-     * @param  endOfInput
-     *         <tt>true</tt> if, and only if, the invoker can provide no
-     *         additional input bytes beyond those in the given buffer
-     *
-     * @return  A coder-result object describing the reason for termination
-     *
-     * @throws  IllegalStateException
-     *          If a decoding operation is already in progress and the previous
-     *          step was an invocation neither of the {@link #reset reset}
-     *          method, nor of this method with a value of <tt>false</tt> for
-     *          the <tt>endOfInput</tt> parameter, nor of this method with a
-     *          value of <tt>true</tt> for the <tt>endOfInput</tt> parameter
-     *          but a return value indicating an incomplete decoding operation
-     *
-     * @throws  CoderMalfunctionError
-     *          If an invocation of the decodeLoop method threw
-     *          an unexpected exception
+     * @param in         The input byte buffer
+     * @param out        The output character buffer
+     * @param endOfInput <tt>true</tt> if, and only if, the invoker can provide no
+     *                   additional input bytes beyond those in the given buffer
+     * @return A coder-result object describing the reason for termination
+     * @throws IllegalStateException If a decoding operation is already in progress and the previous
+     *                               step was an invocation neither of the {@link #reset reset}
+     *                               method, nor of this method with a value of <tt>false</tt> for
+     *                               the <tt>endOfInput</tt> parameter, nor of this method with a
+     *                               value of <tt>true</tt> for the <tt>endOfInput</tt> parameter
+     *                               but a return value indicating an incomplete decoding operation
+     * @throws CoderMalfunctionError If an invocation of the decodeLoop method threw
+     *                               an unexpected exception
      */
     public final CoderResult decode(ByteBuffer in, CharBuffer out,
-                                    boolean endOfInput)
-    {
+                                    boolean endOfInput) {
         int newState = endOfInput ? ST_END : ST_CODING;
         if ((state != ST_RESET) && (state != ST_CODING)
-            && !(endOfInput && (state == ST_END)))
+                && !(endOfInput && (state == ST_END)))
             throwIllegalStateException(state, newState);
         state = newState;
 
-        for (;;) {
+        for (; ; ) {
 
             CoderResult cr;
             try {
@@ -613,7 +517,7 @@ public abstract class CharsetDecoder {
             }
 
             if ((action == CodingErrorAction.IGNORE)
-                || (action == CodingErrorAction.REPLACE)) {
+                    || (action == CodingErrorAction.REPLACE)) {
                 // Skip erroneous input either way
                 in.position(in.position() + cr.length());
                 continue;
@@ -649,19 +553,15 @@ public abstract class CharsetDecoder {
      * <p> This method invokes the {@link #implFlush implFlush} method to
      * perform the actual flushing operation.  </p>
      *
-     * @param  out
-     *         The output character buffer
-     *
-     * @return  A coder-result object, either {@link CoderResult#UNDERFLOW} or
-     *          {@link CoderResult#OVERFLOW}
-     *
-     * @throws  IllegalStateException
-     *          If the previous step of the current decoding operation was an
-     *          invocation neither of the {@link #flush flush} method nor of
-     *          the three-argument {@link
-     *          #decode(ByteBuffer,CharBuffer,boolean) decode} method
-     *          with a value of <tt>true</tt> for the <tt>endOfInput</tt>
-     *          parameter
+     * @param out The output character buffer
+     * @return A coder-result object, either {@link CoderResult#UNDERFLOW} or
+     * {@link CoderResult#OVERFLOW}
+     * @throws IllegalStateException If the previous step of the current decoding operation was an
+     *                               invocation neither of the {@link #flush flush} method nor of
+     *                               the three-argument {@link
+     *                               #decode(ByteBuffer, CharBuffer, boolean) decode} method
+     *                               with a value of <tt>true</tt> for the <tt>endOfInput</tt>
+     *                               parameter
      */
     public final CoderResult flush(CharBuffer out) {
         if (state == ST_END) {
@@ -685,11 +585,9 @@ public abstract class CharsetDecoder {
      * by decoders that may need to write final characters to the output buffer
      * once the entire input sequence has been read. </p>
      *
-     * @param  out
-     *         The output character buffer
-     *
-     * @return  A coder-result object, either {@link CoderResult#UNDERFLOW} or
-     *          {@link CoderResult#OVERFLOW}
+     * @param out The output character buffer
+     * @return A coder-result object, either {@link CoderResult#UNDERFLOW} or
+     * {@link CoderResult#OVERFLOW}
      */
     protected CoderResult implFlush(CharBuffer out) {
         return CoderResult.UNDERFLOW;
@@ -702,8 +600,7 @@ public abstract class CharsetDecoder {
      * {@link #implReset() implReset} method in order to perform any
      * charset-specific reset actions.  </p>
      *
-     * @return  This decoder
-     *
+     * @return This decoder
      */
     public final CharsetDecoder reset() {
         implReset();
@@ -717,7 +614,8 @@ public abstract class CharsetDecoder {
      * <p> The default implementation of this method does nothing.  This method
      * should be overridden by decoders that maintain internal state.  </p>
      */
-    protected void implReset() { }
+    protected void implReset() {
+    }
 
     /**
      * Decodes one or more bytes into one or more characters.
@@ -746,13 +644,9 @@ public abstract class CharsetDecoder {
      * returning {@link CoderResult#UNDERFLOW} until it receives sufficient
      * input.  </p>
      *
-     * @param  in
-     *         The input byte buffer
-     *
-     * @param  out
-     *         The output character buffer
-     *
-     * @return  A coder-result object describing the reason for termination
+     * @param in  The input byte buffer
+     * @param out The output character buffer
+     * @return A coder-result object describing the reason for termination
      */
     protected abstract CoderResult decodeLoop(ByteBuffer in,
                                               CharBuffer out);
@@ -767,46 +661,37 @@ public abstract class CharsetDecoder {
      * decoder.  This method should therefore not be invoked if a decoding
      * operation is already in progress.  </p>
      *
-     * @param  in
-     *         The input byte buffer
-     *
+     * @param in The input byte buffer
      * @return A newly-allocated character buffer containing the result of the
-     *         decoding operation.  The buffer's position will be zero and its
-     *         limit will follow the last character written.
-     *
-     * @throws  IllegalStateException
-     *          If a decoding operation is already in progress
-     *
-     * @throws  MalformedInputException
-     *          If the byte sequence starting at the input buffer's current
-     *          position is not legal for this charset and the current malformed-input action
-     *          is {@link CodingErrorAction#REPORT}
-     *
-     * @throws  UnmappableCharacterException
-     *          If the byte sequence starting at the input buffer's current
-     *          position cannot be mapped to an equivalent character sequence and
-     *          the current unmappable-character action is {@link
-     *          CodingErrorAction#REPORT}
+     * decoding operation.  The buffer's position will be zero and its
+     * limit will follow the last character written.
+     * @throws IllegalStateException        If a decoding operation is already in progress
+     * @throws MalformedInputException      If the byte sequence starting at the input buffer's current
+     *                                      position is not legal for this charset and the current malformed-input action
+     *                                      is {@link CodingErrorAction#REPORT}
+     * @throws UnmappableCharacterException If the byte sequence starting at the input buffer's current
+     *                                      position cannot be mapped to an equivalent character sequence and
+     *                                      the current unmappable-character action is {@link
+     *                                      CodingErrorAction#REPORT}
      */
     public final CharBuffer decode(ByteBuffer in)
-        throws CharacterCodingException
-    {
-        int n = (int)(in.remaining() * averageCharsPerByte());
+            throws CharacterCodingException {
+        int n = (int) (in.remaining() * averageCharsPerByte());
         CharBuffer out = CharBuffer.allocate(n);
 
         if ((n == 0) && (in.remaining() == 0))
             return out;
         reset();
-        for (;;) {
+        for (; ; ) {
             CoderResult cr = in.hasRemaining() ?
-                decode(in, out, true) : CoderResult.UNDERFLOW;
+                    decode(in, out, true) : CoderResult.UNDERFLOW;
             if (cr.isUnderflow())
                 cr = flush(out);
 
             if (cr.isUnderflow())
                 break;
             if (cr.isOverflow()) {
-                n = 2*n + 1;    // Ensure progress; n might be 0!
+                n = 2 * n + 1;    // Ensure progress; n might be 0!
                 CharBuffer o = CharBuffer.allocate(n);
                 out.flip();
                 o.put(out);
@@ -820,7 +705,6 @@ public abstract class CharsetDecoder {
     }
 
 
-
     /**
      * Tells whether or not this decoder implements an auto-detecting charset.
      *
@@ -828,8 +712,8 @@ public abstract class CharsetDecoder {
      * <tt>false</tt>; it should be overridden by auto-detecting decoders to
      * return <tt>true</tt>.  </p>
      *
-     * @return  <tt>true</tt> if, and only if, this decoder implements an
-     *          auto-detecting charset
+     * @return <tt>true</tt> if, and only if, this decoder implements an
+     * auto-detecting charset
      */
     public boolean isAutoDetecting() {
         return false;
@@ -855,11 +739,9 @@ public abstract class CharsetDecoder {
      * auto-detecting decoders to return <tt>true</tt> once the input charset
      * has been determined.  </p>
      *
-     * @return  <tt>true</tt> if, and only if, this decoder has detected a
-     *          specific charset
-     *
-     * @throws  UnsupportedOperationException
-     *          If this decoder does not implement an auto-detecting charset
+     * @return <tt>true</tt> if, and only if, this decoder has detected a
+     * specific charset
+     * @throws UnsupportedOperationException If this decoder does not implement an auto-detecting charset
      */
     public boolean isCharsetDetected() {
         throw new UnsupportedOperationException();
@@ -880,117 +762,19 @@ public abstract class CharsetDecoder {
      * UnsupportedOperationException}; it should be overridden by
      * auto-detecting decoders to return the appropriate value.  </p>
      *
-     * @return  The charset detected by this auto-detecting decoder,
-     *          or <tt>null</tt> if the charset has not yet been determined
-     *
-     * @throws  IllegalStateException
-     *          If insufficient bytes have been read to determine a charset
-     *
-     * @throws  UnsupportedOperationException
-     *          If this decoder does not implement an auto-detecting charset
+     * @return The charset detected by this auto-detecting decoder,
+     * or <tt>null</tt> if the charset has not yet been determined
+     * @throws IllegalStateException         If insufficient bytes have been read to determine a charset
+     * @throws UnsupportedOperationException If this decoder does not implement an auto-detecting charset
      */
     public Charset detectedCharset() {
         throw new UnsupportedOperationException();
     }
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
     private void throwIllegalStateException(int from, int to) {
         throw new IllegalStateException("Current state = " + stateNames[from]
-                                        + ", new state = " + stateNames[to]);
+                + ", new state = " + stateNames[to]);
     }
 
 }
