@@ -29,21 +29,17 @@ package java.nio;
 
 
 class ByteBufferAsCharBufferL                  // package-private
-    extends CharBuffer
-{
-
-
+        extends CharBuffer {
 
     protected final ByteBuffer bb;
+
     protected final int offset;
-
-
 
     ByteBufferAsCharBufferL(ByteBuffer bb) {   // package-private
 
         super(-1, 0,
-              bb.remaining() >> 1,
-              bb.remaining() >> 1);
+                bb.remaining() >> 1,
+                bb.remaining() >> 1);
         this.bb = bb;
         // enforce limit == capacity
         int cap = this.capacity();
@@ -51,22 +47,15 @@ class ByteBufferAsCharBufferL                  // package-private
         int pos = this.position();
         assert (pos <= cap);
         offset = pos;
-
-
-
     }
 
     ByteBufferAsCharBufferL(ByteBuffer bb,
-                                     int mark, int pos, int lim, int cap,
-                                     int off)
-    {
+                            int mark, int pos, int lim, int cap,
+                            int off) {
 
         super(mark, pos, lim, cap);
         this.bb = bb;
         offset = off;
-
-
-
     }
 
     public CharBuffer slice() {
@@ -81,27 +70,22 @@ class ByteBufferAsCharBufferL                  // package-private
 
     public CharBuffer duplicate() {
         return new ByteBufferAsCharBufferL(bb,
-                                                    this.markValue(),
-                                                    this.position(),
-                                                    this.limit(),
-                                                    this.capacity(),
-                                                    offset);
+                this.markValue(),
+                this.position(),
+                this.limit(),
+                this.capacity(),
+                offset);
     }
 
     public CharBuffer asReadOnlyBuffer() {
 
         return new ByteBufferAsCharBufferRL(bb,
-                                                 this.markValue(),
-                                                 this.position(),
-                                                 this.limit(),
-                                                 this.capacity(),
-                                                 offset);
-
-
-
+                this.markValue(),
+                this.position(),
+                this.limit(),
+                this.capacity(),
+                offset);
     }
-
-
 
     protected int ix(int i) {
         return (i << 1) + offset;
@@ -115,34 +99,21 @@ class ByteBufferAsCharBufferL                  // package-private
         return Bits.getCharL(bb, ix(checkIndex(i)));
     }
 
-
-   char getUnchecked(int i) {
+    char getUnchecked(int i) {
         return Bits.getCharL(bb, ix(i));
     }
 
-
-
-
     public CharBuffer put(char x) {
-
         Bits.putCharL(bb, ix(nextPutIndex()), x);
         return this;
-
-
-
     }
 
     public CharBuffer put(int i, char x) {
-
         Bits.putCharL(bb, ix(checkIndex(i)), x);
         return this;
-
-
-
     }
 
     public CharBuffer compact() {
-
         int pos = position();
         int lim = limit();
         assert (pos <= lim);
@@ -158,9 +129,6 @@ class ByteBufferAsCharBufferL                  // package-private
         limit(capacity());
         discardMark();
         return this;
-
-
-
     }
 
     public boolean isDirect() {
@@ -170,8 +138,6 @@ class ByteBufferAsCharBufferL                  // package-private
     public boolean isReadOnly() {
         return false;
     }
-
-
 
     public String toString(int start, int end) {
         if ((end > limit()) || (start > end))
@@ -203,23 +169,15 @@ class ByteBufferAsCharBufferL                  // package-private
         if ((start < 0) || (end > len) || (start > end))
             throw new IndexOutOfBoundsException();
         return new ByteBufferAsCharBufferL(bb,
-                                                  -1,
-                                                  pos + start,
-                                                  pos + end,
-                                                  capacity(),
-                                                  offset);
+                -1,
+                pos + start,
+                pos + end,
+                capacity(),
+                offset);
     }
 
-
-
-
     public ByteOrder order() {
-
-
-
-
         return ByteOrder.LITTLE_ENDIAN;
-
     }
 
 }
