@@ -29,12 +29,8 @@ package java.nio;
 
 
 import java.io.IOException;
-
-
-import java.util.Spliterator;
-import java.util.stream.StreamSupport;
 import java.util.stream.IntStream;
-
+import java.util.stream.StreamSupport;
 
 /**
  * A char buffer.
@@ -57,19 +53,6 @@ import java.util.stream.IntStream;
  *   char array,&#32;a&#32;string, or some other char
  *   buffer into this buffer;&#32;and </p></li>
  *
-
-
-
-
-
-
-
-
-
-
-
-
- *
  *   <li><p> Methods for {@link #compact compacting}, {@link
  *   #duplicate duplicating}, and {@link #slice slicing}
  *   a char buffer.  </p></li>
@@ -78,121 +61,12 @@ import java.util.stream.IntStream;
  *
  * <p> Char buffers can be created either by {@link #allocate
  * <i>allocation</i>}, which allocates space for the buffer's
- *
-
-
-
-
-
-
- *
+ * <p>
+ * <p>
  * content, by {@link #wrap(char[]) <i>wrapping</i>} an existing
  * char array or&#32;string into a buffer, or by creating a
  * <a href="ByteBuffer.html#views"><i>view</i></a> of an existing byte buffer.
  *
-
- *
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-*
-
  *
  * <p> Like a byte buffer, a char buffer is either <a
  * href="ByteBuffer.html#direct"><i>direct</i> or <i>non-direct</i></a>.  A
@@ -202,42 +76,16 @@ import java.util.stream.IntStream;
  * a char buffer is direct may be determined by invoking the {@link
  * #isDirect isDirect} method.  </p>
  *
-
-*
-
- *
  * <p> This class implements the {@link CharSequence} interface so that
  * character buffers may be used wherever character sequences are accepted, for
  * example in the regular-expression package <tt>{@link java.util.regex}</tt>.
  * </p>
  *
-
- *
-
-
-
- *
  * <p> Methods in this class that do not otherwise have a value to return are
  * specified to return the buffer upon which they are invoked.  This allows
  * method invocations to be chained.
- *
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
- *
+ * <p>
+ * <p>
  * The sequence of statements
  *
  * <blockquote><pre>
@@ -245,24 +93,19 @@ import java.util.stream.IntStream;
  * cb.put(subtype);
  * cb.put("; charset=");
  * cb.put(enc);</pre></blockquote>
- *
+ * <p>
  * can, for example, be replaced by the single statement
  *
  * <blockquote><pre>
  * cb.put("text/").put(subtype).put("; charset=").put(enc);</pre></blockquote>
  *
-
- *
- *
  * @author Mark Reinhold
  * @author JSR-51 Expert Group
  * @since 1.4
  */
-
 public abstract class CharBuffer
-    extends Buffer
-    implements Comparable<CharBuffer>, Appendable, CharSequence, Readable
-{
+        extends Buffer
+        implements Comparable<CharBuffer>, Appendable, CharSequence, Readable {
 
     // These fields are declared here rather than in Heap-X-Buffer in order to
     // reduce the number of virtual method invocations needed to access these
@@ -276,8 +119,7 @@ public abstract class CharBuffer
     // backing array, and array offset
     //
     CharBuffer(int mark, int pos, int lim, int cap,   // package-private
-                 char[] hb, int offset)
-    {
+               char[] hb, int offset) {
         super(mark, pos, lim, cap);
         this.hb = hb;
         this.offset = offset;
@@ -289,30 +131,6 @@ public abstract class CharBuffer
         this(mark, pos, lim, cap, null, 0);
     }
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
     /**
      * Allocates a new char buffer.
      *
@@ -321,13 +139,9 @@ public abstract class CharBuffer
      * initialized to zero.  It will have a {@link #array backing array},
      * and its {@link #arrayOffset array offset} will be zero.
      *
-     * @param  capacity
-     *         The new buffer's capacity, in chars
-     *
-     * @return  The new char buffer
-     *
-     * @throws  IllegalArgumentException
-     *          If the <tt>capacity</tt> is a negative integer
+     * @param capacity The new buffer's capacity, in chars
+     * @return The new char buffer
+     * @throws IllegalArgumentException If the <tt>capacity</tt> is a negative integer
      */
     public static CharBuffer allocate(int capacity) {
         if (capacity < 0)
@@ -346,29 +160,20 @@ public abstract class CharBuffer
      * {@link #array backing array} will be the given array, and
      * its {@link #arrayOffset array offset} will be zero.  </p>
      *
-     * @param  array
-     *         The array that will back the new buffer
-     *
-     * @param  offset
-     *         The offset of the subarray to be used; must be non-negative and
-     *         no larger than <tt>array.length</tt>.  The new buffer's position
-     *         will be set to this value.
-     *
-     * @param  length
-     *         The length of the subarray to be used;
-     *         must be non-negative and no larger than
-     *         <tt>array.length - offset</tt>.
-     *         The new buffer's limit will be set to <tt>offset + length</tt>.
-     *
-     * @return  The new char buffer
-     *
-     * @throws  IndexOutOfBoundsException
-     *          If the preconditions on the <tt>offset</tt> and <tt>length</tt>
-     *          parameters do not hold
+     * @param array  The array that will back the new buffer
+     * @param offset The offset of the subarray to be used; must be non-negative and
+     *               no larger than <tt>array.length</tt>.  The new buffer's position
+     *               will be set to this value.
+     * @param length The length of the subarray to be used;
+     *               must be non-negative and no larger than
+     *               <tt>array.length - offset</tt>.
+     *               The new buffer's limit will be set to <tt>offset + length</tt>.
+     * @return The new char buffer
+     * @throws IndexOutOfBoundsException If the preconditions on the <tt>offset</tt> and <tt>length</tt>
+     *                                   parameters do not hold
      */
     public static CharBuffer wrap(char[] array,
-                                    int offset, int length)
-    {
+                                  int offset, int length) {
         try {
             return new HeapCharBuffer(array, offset, length);
         } catch (IllegalArgumentException x) {
@@ -387,16 +192,12 @@ public abstract class CharBuffer
      * given array, and its {@link #arrayOffset array offset>} will
      * be zero.  </p>
      *
-     * @param  array
-     *         The array that will back this buffer
-     *
-     * @return  The new char buffer
+     * @param array The array that will back this buffer
+     * @return The new char buffer
      */
     public static CharBuffer wrap(char[] array) {
         return wrap(array, 0, array.length);
     }
-
-
 
     /**
      * Attempts to read characters into the specified character buffer.
@@ -406,9 +207,9 @@ public abstract class CharBuffer
      *
      * @param target the buffer to read characters into
      * @return The number of characters added to the buffer, or
-     *         -1 if this source of characters is at its end
-     * @throws IOException if an I/O error occurs
-     * @throws NullPointerException if target is null
+     * -1 if this source of characters is at its end
+     * @throws IOException             if an I/O error occurs
+     * @throws NullPointerException    if target is null
      * @throws ReadOnlyBufferException if target is a read only buffer
      * @since 1.5
      */
@@ -440,26 +241,18 @@ public abstract class CharBuffer
      * <tt>csq.length()</tt>, its position will be <tt>start</tt>, its limit
      * will be <tt>end</tt>, and its mark will be undefined.  </p>
      *
-     * @param  csq
-     *         The character sequence from which the new character buffer is to
-     *         be created
-     *
-     * @param  start
-     *         The index of the first character to be used;
-     *         must be non-negative and no larger than <tt>csq.length()</tt>.
-     *         The new buffer's position will be set to this value.
-     *
-     * @param  end
-     *         The index of the character following the last character to be
-     *         used; must be no smaller than <tt>start</tt> and no larger
-     *         than <tt>csq.length()</tt>.
-     *         The new buffer's limit will be set to this value.
-     *
-     * @return  The new character buffer
-     *
-     * @throws  IndexOutOfBoundsException
-     *          If the preconditions on the <tt>start</tt> and <tt>end</tt>
-     *          parameters do not hold
+     * @param csq   The character sequence from which the new character buffer is to
+     *              be created
+     * @param start The index of the first character to be used;
+     *              must be non-negative and no larger than <tt>csq.length()</tt>.
+     *              The new buffer's position will be set to this value.
+     * @param end   The index of the character following the last character to be
+     *              used; must be no smaller than <tt>start</tt> and no larger
+     *              than <tt>csq.length()</tt>.
+     *              The new buffer's limit will be set to this value.
+     * @return The new character buffer
+     * @throws IndexOutOfBoundsException If the preconditions on the <tt>start</tt> and <tt>end</tt>
+     *                                   parameters do not hold
      */
     public static CharBuffer wrap(CharSequence csq, int start, int end) {
         try {
@@ -477,17 +270,13 @@ public abstract class CharBuffer
      * <tt>csq.length()</tt>, its position will be zero, and its mark will be
      * undefined.  </p>
      *
-     * @param  csq
-     *         The character sequence from which the new character buffer is to
-     *         be created
-     *
-     * @return  The new character buffer
+     * @param csq The character sequence from which the new character buffer is to
+     *            be created
+     * @return The new character buffer
      */
     public static CharBuffer wrap(CharSequence csq) {
         return wrap(csq, 0, csq.length());
     }
-
-
 
     /**
      * Creates a new char buffer whose content is a shared subsequence of
@@ -504,7 +293,7 @@ public abstract class CharBuffer
      * buffer is direct, and it will be read-only if, and only if, this buffer
      * is read-only.  </p>
      *
-     * @return  The new char buffer
+     * @return The new char buffer
      */
     public abstract CharBuffer slice();
 
@@ -521,7 +310,7 @@ public abstract class CharBuffer
      * and only if, this buffer is direct, and it will be read-only if, and
      * only if, this buffer is read-only.  </p>
      *
-     * @return  The new char buffer
+     * @return The new char buffer
      */
     public abstract CharBuffer duplicate();
 
@@ -541,7 +330,7 @@ public abstract class CharBuffer
      * <p> If this buffer is itself read-only then this method behaves in
      * exactly the same way as the {@link #duplicate duplicate} method.  </p>
      *
-     * @return  The new, read-only char buffer
+     * @return The new, read-only char buffer
      */
     public abstract CharBuffer asReadOnlyBuffer();
 
@@ -552,10 +341,8 @@ public abstract class CharBuffer
      * Relative <i>get</i> method.  Reads the char at this buffer's
      * current position, and then increments the position.
      *
-     * @return  The char at the buffer's current position
-     *
-     * @throws  BufferUnderflowException
-     *          If the buffer's current position is not smaller than its limit
+     * @return The char at the buffer's current position
+     * @throws BufferUnderflowException If the buffer's current position is not smaller than its limit
      */
     public abstract char get();
 
@@ -565,16 +352,10 @@ public abstract class CharBuffer
      * <p> Writes the given char into this buffer at the current
      * position, and then increments the position. </p>
      *
-     * @param  c
-     *         The char to be written
-     *
-     * @return  This buffer
-     *
-     * @throws  BufferOverflowException
-     *          If this buffer's current position is not smaller than its limit
-     *
-     * @throws  ReadOnlyBufferException
-     *          If this buffer is read-only
+     * @param c The char to be written
+     * @return This buffer
+     * @throws BufferOverflowException If this buffer's current position is not smaller than its limit
+     * @throws ReadOnlyBufferException If this buffer is read-only
      */
     public abstract CharBuffer put(char c);
 
@@ -582,14 +363,10 @@ public abstract class CharBuffer
      * Absolute <i>get</i> method.  Reads the char at the given
      * index.
      *
-     * @param  index
-     *         The index from which the char will be read
-     *
-     * @return  The char at the given index
-     *
-     * @throws  IndexOutOfBoundsException
-     *          If <tt>index</tt> is negative
-     *          or not smaller than the buffer's limit
+     * @param index The index from which the char will be read
+     * @return The char at the given index
+     * @throws IndexOutOfBoundsException If <tt>index</tt> is negative
+     *                                   or not smaller than the buffer's limit
      */
     public abstract char get(int index);
 
@@ -598,10 +375,8 @@ public abstract class CharBuffer
      * Absolute <i>get</i> method.  Reads the char at the given
      * index without any validation of the index.
      *
-     * @param  index
-     *         The index from which the char will be read
-     *
-     * @return  The char at the given index
+     * @param index The index from which the char will be read
+     * @return The char at the given index
      */
     abstract char getUnchecked(int index);   // package-private
 
@@ -612,20 +387,12 @@ public abstract class CharBuffer
      * <p> Writes the given char into this buffer at the given
      * index. </p>
      *
-     * @param  index
-     *         The index at which the char will be written
-     *
-     * @param  c
-     *         The char value to be written
-     *
-     * @return  This buffer
-     *
-     * @throws  IndexOutOfBoundsException
-     *          If <tt>index</tt> is negative
-     *          or not smaller than the buffer's limit
-     *
-     * @throws  ReadOnlyBufferException
-     *          If this buffer is read-only
+     * @param index The index at which the char will be written
+     * @param c     The char value to be written
+     * @return This buffer
+     * @throws IndexOutOfBoundsException If <tt>index</tt> is negative
+     *                                   or not smaller than the buffer's limit
+     * @throws ReadOnlyBufferException   If this buffer is read-only
      */
     public abstract CharBuffer put(int index, char c);
 
@@ -655,32 +422,22 @@ public abstract class CharBuffer
      *     for (int i = off; i < off + len; i++)
      *         dst[i] = src.get():
      * }</pre>
-     *
+     * <p>
      * except that it first checks that there are sufficient chars in
      * this buffer and it is potentially much more efficient.
      *
-     * @param  dst
-     *         The array into which chars are to be written
-     *
-     * @param  offset
-     *         The offset within the array of the first char to be
-     *         written; must be non-negative and no larger than
-     *         <tt>dst.length</tt>
-     *
-     * @param  length
-     *         The maximum number of chars to be written to the given
-     *         array; must be non-negative and no larger than
-     *         <tt>dst.length - offset</tt>
-     *
-     * @return  This buffer
-     *
-     * @throws  BufferUnderflowException
-     *          If there are fewer than <tt>length</tt> chars
-     *          remaining in this buffer
-     *
-     * @throws  IndexOutOfBoundsException
-     *          If the preconditions on the <tt>offset</tt> and <tt>length</tt>
-     *          parameters do not hold
+     * @param dst    The array into which chars are to be written
+     * @param offset The offset within the array of the first char to be
+     *               written; must be non-negative and no larger than
+     *               <tt>dst.length</tt>
+     * @param length The maximum number of chars to be written to the given
+     *               array; must be non-negative and no larger than
+     *               <tt>dst.length - offset</tt>
+     * @return This buffer
+     * @throws BufferUnderflowException  If there are fewer than <tt>length</tt> chars
+     *                                   remaining in this buffer
+     * @throws IndexOutOfBoundsException If the preconditions on the <tt>offset</tt> and <tt>length</tt>
+     *                                   parameters do not hold
      */
     public CharBuffer get(char[] dst, int offset, int length) {
         checkBounds(offset, length, dst.length);
@@ -702,14 +459,10 @@ public abstract class CharBuffer
      * <pre>
      *     src.get(a, 0, a.length) </pre>
      *
-     * @param   dst
-     *          The destination array
-     *
-     * @return  This buffer
-     *
-     * @throws  BufferUnderflowException
-     *          If there are fewer than <tt>length</tt> chars
-     *          remaining in this buffer
+     * @param dst The destination array
+     * @return This buffer
+     * @throws BufferUnderflowException If there are fewer than <tt>length</tt> chars
+     *                                  remaining in this buffer
      */
     public CharBuffer get(char[] dst) {
         return get(dst, 0, dst.length);
@@ -739,25 +492,17 @@ public abstract class CharBuffer
      * <pre>
      *     while (src.hasRemaining())
      *         dst.put(src.get()); </pre>
-     *
+     * <p>
      * except that it first checks that there is sufficient space in this
      * buffer and it is potentially much more efficient.
      *
-     * @param  src
-     *         The source buffer from which chars are to be read;
-     *         must not be this buffer
-     *
-     * @return  This buffer
-     *
-     * @throws  BufferOverflowException
-     *          If there is insufficient space in this buffer
-     *          for the remaining chars in the source buffer
-     *
-     * @throws  IllegalArgumentException
-     *          If the source buffer is this buffer
-     *
-     * @throws  ReadOnlyBufferException
-     *          If this buffer is read-only
+     * @param src The source buffer from which chars are to be read;
+     *            must not be this buffer
+     * @return This buffer
+     * @throws BufferOverflowException  If there is insufficient space in this buffer
+     *                                  for the remaining chars in the source buffer
+     * @throws IllegalArgumentException If the source buffer is this buffer
+     * @throws ReadOnlyBufferException  If this buffer is read-only
      */
     public CharBuffer put(CharBuffer src) {
         if (src == this)
@@ -795,33 +540,21 @@ public abstract class CharBuffer
      *     for (int i = off; i < off + len; i++)
      *         dst.put(a[i]);
      * }</pre>
-     *
+     * <p>
      * except that it first checks that there is sufficient space in this
      * buffer and it is potentially much more efficient.
      *
-     * @param  src
-     *         The array from which chars are to be read
-     *
-     * @param  offset
-     *         The offset within the array of the first char to be read;
-     *         must be non-negative and no larger than <tt>array.length</tt>
-     *
-     * @param  length
-     *         The number of chars to be read from the given array;
-     *         must be non-negative and no larger than
-     *         <tt>array.length - offset</tt>
-     *
-     * @return  This buffer
-     *
-     * @throws  BufferOverflowException
-     *          If there is insufficient space in this buffer
-     *
-     * @throws  IndexOutOfBoundsException
-     *          If the preconditions on the <tt>offset</tt> and <tt>length</tt>
-     *          parameters do not hold
-     *
-     * @throws  ReadOnlyBufferException
-     *          If this buffer is read-only
+     * @param src    The array from which chars are to be read
+     * @param offset The offset within the array of the first char to be read;
+     *               must be non-negative and no larger than <tt>array.length</tt>
+     * @param length The number of chars to be read from the given array;
+     *               must be non-negative and no larger than
+     *               <tt>array.length - offset</tt>
+     * @return This buffer
+     * @throws BufferOverflowException   If there is insufficient space in this buffer
+     * @throws IndexOutOfBoundsException If the preconditions on the <tt>offset</tt> and <tt>length</tt>
+     *                                   parameters do not hold
+     * @throws ReadOnlyBufferException   If this buffer is read-only
      */
     public CharBuffer put(char[] src, int offset, int length) {
         checkBounds(offset, length, src.length);
@@ -844,22 +577,14 @@ public abstract class CharBuffer
      * <pre>
      *     dst.put(a, 0, a.length) </pre>
      *
-     * @param   src
-     *          The source array
-     *
-     * @return  This buffer
-     *
-     * @throws  BufferOverflowException
-     *          If there is insufficient space in this buffer
-     *
-     * @throws  ReadOnlyBufferException
-     *          If this buffer is read-only
+     * @param src The source array
+     * @return This buffer
+     * @throws BufferOverflowException If there is insufficient space in this buffer
+     * @throws ReadOnlyBufferException If this buffer is read-only
      */
     public final CharBuffer put(char[] src) {
         return put(src, 0, src.length);
     }
-
-
 
     /**
      * Relative bulk <i>put</i> method&nbsp;&nbsp;<i>(optional operation)</i>.
@@ -885,34 +610,22 @@ public abstract class CharBuffer
      *     for (int i = start; i < end; i++)
      *         dst.put(src.charAt(i));
      * }</pre>
-     *
+     * <p>
      * except that it first checks that there is sufficient space in this
      * buffer and it is potentially much more efficient.
      *
-     * @param  src
-     *         The string from which chars are to be read
-     *
-     * @param  start
-     *         The offset within the string of the first char to be read;
-     *         must be non-negative and no larger than
-     *         <tt>string.length()</tt>
-     *
-     * @param  end
-     *         The offset within the string of the last char to be read,
-     *         plus one; must be non-negative and no larger than
-     *         <tt>string.length()</tt>
-     *
-     * @return  This buffer
-     *
-     * @throws  BufferOverflowException
-     *          If there is insufficient space in this buffer
-     *
-     * @throws  IndexOutOfBoundsException
-     *          If the preconditions on the <tt>start</tt> and <tt>end</tt>
-     *          parameters do not hold
-     *
-     * @throws  ReadOnlyBufferException
-     *          If this buffer is read-only
+     * @param src   The string from which chars are to be read
+     * @param start The offset within the string of the first char to be read;
+     *              must be non-negative and no larger than
+     *              <tt>string.length()</tt>
+     * @param end   The offset within the string of the last char to be read,
+     *              plus one; must be non-negative and no larger than
+     *              <tt>string.length()</tt>
+     * @return This buffer
+     * @throws BufferOverflowException   If there is insufficient space in this buffer
+     * @throws IndexOutOfBoundsException If the preconditions on the <tt>start</tt> and <tt>end</tt>
+     *                                   parameters do not hold
+     * @throws ReadOnlyBufferException   If this buffer is read-only
      */
     public CharBuffer put(String src, int start, int end) {
         checkBounds(start, end - start, src.length());
@@ -935,22 +648,14 @@ public abstract class CharBuffer
      * <pre>
      *     dst.put(s, 0, s.length()) </pre>
      *
-     * @param   src
-     *          The source string
-     *
-     * @return  This buffer
-     *
-     * @throws  BufferOverflowException
-     *          If there is insufficient space in this buffer
-     *
-     * @throws  ReadOnlyBufferException
-     *          If this buffer is read-only
+     * @param src The source string
+     * @return This buffer
+     * @throws BufferOverflowException If there is insufficient space in this buffer
+     * @throws ReadOnlyBufferException If this buffer is read-only
      */
     public final CharBuffer put(String src) {
         return put(src, 0, src.length());
     }
-
-
 
 
     // -- Other stuff --
@@ -963,8 +668,8 @@ public abstract class CharBuffer
      * and {@link #arrayOffset() arrayOffset} methods may safely be invoked.
      * </p>
      *
-     * @return  <tt>true</tt> if, and only if, this buffer
-     *          is backed by an array and is not read-only
+     * @return <tt>true</tt> if, and only if, this buffer
+     * is backed by an array and is not read-only
      */
     public final boolean hasArray() {
         return (hb != null) && !isReadOnly;
@@ -981,13 +686,9 @@ public abstract class CharBuffer
      * method in order to ensure that this buffer has an accessible backing
      * array.  </p>
      *
-     * @return  The array that backs this buffer
-     *
-     * @throws  ReadOnlyBufferException
-     *          If this buffer is backed by an array but is read-only
-     *
-     * @throws  UnsupportedOperationException
-     *          If this buffer is not backed by an accessible array
+     * @return The array that backs this buffer
+     * @throws ReadOnlyBufferException       If this buffer is backed by an array but is read-only
+     * @throws UnsupportedOperationException If this buffer is not backed by an accessible array
      */
     public final char[] array() {
         if (hb == null)
@@ -1008,14 +709,10 @@ public abstract class CharBuffer
      * method in order to ensure that this buffer has an accessible backing
      * array.  </p>
      *
-     * @return  The offset within this buffer's array
-     *          of the first element of the buffer
-     *
-     * @throws  ReadOnlyBufferException
-     *          If this buffer is backed by an array but is read-only
-     *
-     * @throws  UnsupportedOperationException
-     *          If this buffer is not backed by an accessible array
+     * @return The offset within this buffer's array
+     * of the first element of the buffer
+     * @throws ReadOnlyBufferException       If this buffer is backed by an array but is read-only
+     * @throws UnsupportedOperationException If this buffer is not backed by an accessible array
      */
     public final int arrayOffset() {
         if (hb == null)
@@ -1043,61 +740,17 @@ public abstract class CharBuffer
      * followed immediately by an invocation of another relative <i>put</i>
      * method. </p>
      *
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-     *
-     * @return  This buffer
-     *
-     * @throws  ReadOnlyBufferException
-     *          If this buffer is read-only
+     * @return This buffer
+     * @throws ReadOnlyBufferException If this buffer is read-only
      */
     public abstract CharBuffer compact();
 
     /**
      * Tells whether or not this char buffer is direct.
      *
-     * @return  <tt>true</tt> if, and only if, this buffer is direct
+     * @return <tt>true</tt> if, and only if, this buffer is direct
      */
     public abstract boolean isDirect();
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
     /**
      * Returns the current hash code of this buffer.
@@ -1110,16 +763,13 @@ public abstract class CharBuffer
      * to use buffers as keys in hash maps or similar data structures unless it
      * is known that their contents will not change.  </p>
      *
-     * @return  The current hash code of this buffer
+     * @return The current hash code of this buffer
      */
     public int hashCode() {
         int h = 1;
         int p = position();
         for (int i = limit() - 1; i >= p; i--)
-
-
-
-            h = 31 * h + (int)get(i);
+            h = 31 * h + (int) get(i);
 
         return h;
     }
@@ -1130,7 +780,6 @@ public abstract class CharBuffer
      * <p> Two char buffers are equal if, and only if,
      *
      * <ol>
-     *
      *   <li><p> They have the same element type,  </p></li>
      *
      *   <li><p> They have the same number of remaining elements, and
@@ -1138,30 +787,23 @@ public abstract class CharBuffer
      *
      *   <li><p> The two sequences of remaining elements, considered
      *   independently of their starting positions, are pointwise equal.
-
-
-
-
-
-
-
+     *
      *   </p></li>
      *
      * </ol>
      *
      * <p> A char buffer is not equal to any other type of object.  </p>
      *
-     * @param  ob  The object to which this buffer is to be compared
-     *
-     * @return  <tt>true</tt> if, and only if, this buffer is equal to the
-     *           given object
+     * @param ob The object to which this buffer is to be compared
+     * @return <tt>true</tt> if, and only if, this buffer is equal to the
+     * given object
      */
     public boolean equals(Object ob) {
         if (this == ob)
             return true;
         if (!(ob instanceof CharBuffer))
             return false;
-        CharBuffer that = (CharBuffer)ob;
+        CharBuffer that = (CharBuffer) ob;
         if (this.remaining() != that.remaining())
             return false;
         int p = this.position();
@@ -1172,11 +814,7 @@ public abstract class CharBuffer
     }
 
     private static boolean equals(char x, char y) {
-
-
-
         return x == y;
-
     }
 
     /**
@@ -1185,22 +823,15 @@ public abstract class CharBuffer
      * <p> Two char buffers are compared by comparing their sequences of
      * remaining elements lexicographically, without regard to the starting
      * position of each sequence within its corresponding buffer.
-
-
-
-
-
-
-
-
+     * <p>
      * Pairs of {@code char} elements are compared as if by invoking
-     * {@link Character#compare(char,char)}.
-
+     * {@link Character#compare(char, char)}.
+     *
      *
      * <p> A char buffer is not comparable to any other type of object.
      *
-     * @return  A negative integer, zero, or a positive integer as this buffer
-     *          is less than, equal to, or greater than the given buffer
+     * @return A negative integer, zero, or a positive integer as this buffer
+     * is less than, equal to, or greater than the given buffer
      */
     public int compareTo(CharBuffer that) {
         int n = this.position() + Math.min(this.remaining(), that.remaining());
@@ -1213,18 +844,10 @@ public abstract class CharBuffer
     }
 
     private static int compare(char x, char y) {
-
-
-
-
-
-
         return Character.compare(x, y);
-
     }
 
     // -- Other char stuff --
-
 
 
     /**
@@ -1235,7 +858,7 @@ public abstract class CharBuffer
      * at index <tt>limit()</tt>&nbsp;-&nbsp;1.  Invoking this method does not
      * change the buffer's position. </p>
      *
-     * @return  The specified string
+     * @return The specified string
      */
     public String toString() {
         return toString(position(), limit());
@@ -1254,7 +877,7 @@ public abstract class CharBuffer
      * (inclusive) and the limit (exclusive); that is, it is equivalent to
      * <tt>remaining()</tt>. </p>
      *
-     * @return  The length of this character buffer
+     * @return The length of this character buffer
      */
     public final int length() {
         return remaining();
@@ -1264,15 +887,11 @@ public abstract class CharBuffer
      * Reads the character at the given index relative to the current
      * position.
      *
-     * @param  index
-     *         The index of the character to be read, relative to the position;
-     *         must be non-negative and smaller than <tt>remaining()</tt>
-     *
-     * @return  The character at index
-     *          <tt>position()&nbsp;+&nbsp;index</tt>
-     *
-     * @throws  IndexOutOfBoundsException
-     *          If the preconditions on <tt>index</tt> do not hold
+     * @param index The index of the character to be read, relative to the position;
+     *              must be non-negative and smaller than <tt>remaining()</tt>
+     * @return The character at index
+     * <tt>position()&nbsp;+&nbsp;index</tt>
+     * @throws IndexOutOfBoundsException If the preconditions on <tt>index</tt> do not hold
      */
     public final char charAt(int index) {
         return get(position() + checkIndex(index, 1));
@@ -1291,22 +910,16 @@ public abstract class CharBuffer
      * direct if, and only if, this buffer is direct, and it will be read-only
      * if, and only if, this buffer is read-only.  </p>
      *
-     * @param  start
-     *         The index, relative to the current position, of the first
-     *         character in the subsequence; must be non-negative and no larger
-     *         than <tt>remaining()</tt>
-     *
-     * @param  end
-     *         The index, relative to the current position, of the character
-     *         following the last character in the subsequence; must be no
-     *         smaller than <tt>start</tt> and no larger than
-     *         <tt>remaining()</tt>
-     *
-     * @return  The new character buffer
-     *
-     * @throws  IndexOutOfBoundsException
-     *          If the preconditions on <tt>start</tt> and <tt>end</tt>
-     *          do not hold
+     * @param start The index, relative to the current position, of the first
+     *              character in the subsequence; must be non-negative and no larger
+     *              than <tt>remaining()</tt>
+     * @param end   The index, relative to the current position, of the character
+     *              following the last character in the subsequence; must be no
+     *              smaller than <tt>start</tt> and no larger than
+     *              <tt>remaining()</tt>
+     * @return The new character buffer
+     * @throws IndexOutOfBoundsException If the preconditions on <tt>start</tt> and <tt>end</tt>
+     *                                   do not hold
      */
     public abstract CharBuffer subSequence(int start, int end);
 
@@ -1329,20 +942,13 @@ public abstract class CharBuffer
      * toString} method of a character buffer will return a subsequence whose
      * content depends upon the buffer's position and limit.
      *
-     * @param  csq
-     *         The character sequence to append.  If <tt>csq</tt> is
-     *         <tt>null</tt>, then the four characters <tt>"null"</tt> are
-     *         appended to this character buffer.
-     *
-     * @return  This buffer
-     *
-     * @throws  BufferOverflowException
-     *          If there is insufficient space in this buffer
-     *
-     * @throws  ReadOnlyBufferException
-     *          If this buffer is read-only
-     *
-     * @since  1.5
+     * @param csq The character sequence to append.  If <tt>csq</tt> is
+     *            <tt>null</tt>, then the four characters <tt>"null"</tt> are
+     *            appended to this character buffer.
+     * @return This buffer
+     * @throws BufferOverflowException If there is insufficient space in this buffer
+     * @throws ReadOnlyBufferException If this buffer is read-only
+     * @since 1.5
      */
     public CharBuffer append(CharSequence csq) {
         if (csq == null)
@@ -1362,26 +968,17 @@ public abstract class CharBuffer
      * <pre>
      *     dst.put(csq.subSequence(start, end).toString()) </pre>
      *
-     * @param  csq
-     *         The character sequence from which a subsequence will be
-     *         appended.  If <tt>csq</tt> is <tt>null</tt>, then characters
-     *         will be appended as if <tt>csq</tt> contained the four
-     *         characters <tt>"null"</tt>.
-     *
-     * @return  This buffer
-     *
-     * @throws  BufferOverflowException
-     *          If there is insufficient space in this buffer
-     *
-     * @throws  IndexOutOfBoundsException
-     *          If <tt>start</tt> or <tt>end</tt> are negative, <tt>start</tt>
-     *          is greater than <tt>end</tt>, or <tt>end</tt> is greater than
-     *          <tt>csq.length()</tt>
-     *
-     * @throws  ReadOnlyBufferException
-     *          If this buffer is read-only
-     *
-     * @since  1.5
+     * @param csq The character sequence from which a subsequence will be
+     *            appended.  If <tt>csq</tt> is <tt>null</tt>, then characters
+     *            will be appended as if <tt>csq</tt> contained the four
+     *            characters <tt>"null"</tt>.
+     * @return This buffer
+     * @throws BufferOverflowException   If there is insufficient space in this buffer
+     * @throws IndexOutOfBoundsException If <tt>start</tt> or <tt>end</tt> are negative, <tt>start</tt>
+     *                                   is greater than <tt>end</tt>, or <tt>end</tt> is greater than
+     *                                   <tt>csq.length()</tt>
+     * @throws ReadOnlyBufferException   If this buffer is read-only
+     * @since 1.5
      */
     public CharBuffer append(CharSequence csq, int start, int end) {
         CharSequence cs = (csq == null ? "null" : csq);
@@ -1398,28 +995,18 @@ public abstract class CharBuffer
      * <pre>
      *     dst.put(c) </pre>
      *
-     * @param  c
-     *         The 16-bit char to append
-     *
-     * @return  This buffer
-     *
-     * @throws  BufferOverflowException
-     *          If there is insufficient space in this buffer
-     *
-     * @throws  ReadOnlyBufferException
-     *          If this buffer is read-only
-     *
-     * @since  1.5
+     * @param c The 16-bit char to append
+     * @return This buffer
+     * @throws BufferOverflowException If there is insufficient space in this buffer
+     * @throws ReadOnlyBufferException If this buffer is read-only
+     * @since 1.5
      */
     public CharBuffer append(char c) {
         return put(c);
     }
 
 
-
-
     // -- Other byte stuff: Access to binary data --
-
 
 
     /**
@@ -1432,72 +1019,15 @@ public abstract class CharBuffer
      * href="ByteBuffer.html#views">view</a> of a byte buffer is that of the
      * byte buffer at the moment that the view is created.  </p>
      *
-     * @return  This buffer's byte order
+     * @return This buffer's byte order
      */
     public abstract ByteOrder order();
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
     @Override
 
     public IntStream chars() {
         return StreamSupport.intStream(() -> new CharBufferSpliterator(this),
-            Buffer.SPLITERATOR_CHARACTERISTICS, false);
+                Buffer.SPLITERATOR_CHARACTERISTICS, false);
     }
-
-
 
 }
