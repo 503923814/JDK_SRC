@@ -29,21 +29,15 @@ package java.nio;
 
 
 class ByteBufferAsLongBufferB                  // package-private
-    extends LongBuffer
-{
-
-
+        extends LongBuffer {
 
     protected final ByteBuffer bb;
     protected final int offset;
 
-
-
     ByteBufferAsLongBufferB(ByteBuffer bb) {   // package-private
-
         super(-1, 0,
-              bb.remaining() >> 3,
-              bb.remaining() >> 3);
+                bb.remaining() >> 3,
+                bb.remaining() >> 3);
         this.bb = bb;
         // enforce limit == capacity
         int cap = this.capacity();
@@ -51,22 +45,14 @@ class ByteBufferAsLongBufferB                  // package-private
         int pos = this.position();
         assert (pos <= cap);
         offset = pos;
-
-
-
     }
 
     ByteBufferAsLongBufferB(ByteBuffer bb,
-                                     int mark, int pos, int lim, int cap,
-                                     int off)
-    {
-
+                            int mark, int pos, int lim, int cap,
+                            int off) {
         super(mark, pos, lim, cap);
         this.bb = bb;
         offset = off;
-
-
-
     }
 
     public LongBuffer slice() {
@@ -81,26 +67,21 @@ class ByteBufferAsLongBufferB                  // package-private
 
     public LongBuffer duplicate() {
         return new ByteBufferAsLongBufferB(bb,
-                                                    this.markValue(),
-                                                    this.position(),
-                                                    this.limit(),
-                                                    this.capacity(),
-                                                    offset);
+                this.markValue(),
+                this.position(),
+                this.limit(),
+                this.capacity(),
+                offset);
     }
 
     public LongBuffer asReadOnlyBuffer() {
-
         return new ByteBufferAsLongBufferRB(bb,
-                                                 this.markValue(),
-                                                 this.position(),
-                                                 this.limit(),
-                                                 this.capacity(),
-                                                 offset);
-
-
-
+                this.markValue(),
+                this.position(),
+                this.limit(),
+                this.capacity(),
+                offset);
     }
-
 
 
     protected int ix(int i) {
@@ -116,33 +97,17 @@ class ByteBufferAsLongBufferB                  // package-private
     }
 
 
-
-
-
-
-
-
-
     public LongBuffer put(long x) {
-
         Bits.putLongB(bb, ix(nextPutIndex()), x);
         return this;
-
-
-
     }
 
     public LongBuffer put(int i, long x) {
-
         Bits.putLongB(bb, ix(checkIndex(i)), x);
         return this;
-
-
-
     }
 
     public LongBuffer compact() {
-
         int pos = position();
         int lim = limit();
         assert (pos <= lim);
@@ -158,9 +123,6 @@ class ByteBufferAsLongBufferB                  // package-private
         limit(capacity());
         discardMark();
         return this;
-
-
-
     }
 
     public boolean isDirect() {
@@ -171,55 +133,8 @@ class ByteBufferAsLongBufferB                  // package-private
         return false;
     }
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
     public ByteOrder order() {
-
         return ByteOrder.BIG_ENDIAN;
-
-
-
-
     }
 
 }
