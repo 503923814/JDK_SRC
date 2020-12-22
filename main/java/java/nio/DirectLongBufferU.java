@@ -27,29 +27,18 @@
 
 package java.nio;
 
-import java.io.FileDescriptor;
 import sun.misc.Cleaner;
 import sun.misc.Unsafe;
-import sun.misc.VM;
 import sun.nio.ch.DirectBuffer;
 
 
-class DirectLongBufferU
-
-    extends LongBuffer
-
-
-
-    implements DirectBuffer
-{
-
-
+class DirectLongBufferU extends LongBuffer implements DirectBuffer {
 
     // Cached unsafe-access object
     protected static final Unsafe unsafe = Bits.unsafe();
 
     // Cached array base offset
-    private static final long arrayBaseOffset = (long)unsafe.arrayBaseOffset(long[].class);
+    private static final long arrayBaseOffset = (long) unsafe.arrayBaseOffset(long[].class);
 
     // Cached unaligned-access capability
     protected static final boolean unaligned = Bits.unaligned();
@@ -67,140 +56,18 @@ class DirectLongBufferU
         return att;
     }
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-    public Cleaner cleaner() { return null; }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+    public Cleaner cleaner() {
+        return null;
+    }
 
     // For duplicates and slices
     //
     DirectLongBufferU(DirectBuffer db,         // package-private
-                               int mark, int pos, int lim, int cap,
-                               int off)
-    {
-
+                      int mark, int pos, int lim, int cap,
+                      int off) {
         super(mark, pos, lim, cap);
         address = db.address() + off;
-
-
-
         att = db;
-
-
-
     }
 
     public LongBuffer slice() {
@@ -215,26 +82,22 @@ class DirectLongBufferU
 
     public LongBuffer duplicate() {
         return new DirectLongBufferU(this,
-                                              this.markValue(),
-                                              this.position(),
-                                              this.limit(),
-                                              this.capacity(),
-                                              0);
+                this.markValue(),
+                this.position(),
+                this.limit(),
+                this.capacity(),
+                0);
     }
 
     public LongBuffer asReadOnlyBuffer() {
 
         return new DirectLongBufferRU(this,
-                                           this.markValue(),
-                                           this.position(),
-                                           this.limit(),
-                                           this.capacity(),
-                                           0);
-
-
-
+                this.markValue(),
+                this.position(),
+                this.limit(),
+                this.capacity(),
+                0);
     }
-
 
 
     public long address() {
@@ -253,12 +116,6 @@ class DirectLongBufferU
         return ((unsafe.getLong(ix(checkIndex(i)))));
     }
 
-
-
-
-
-
-
     public LongBuffer get(long[] dst, int offset, int length) {
 
         if ((length << 3) > Bits.JNI_COPY_TO_ARRAY_THRESHOLD) {
@@ -270,52 +127,37 @@ class DirectLongBufferU
             if (length > rem)
                 throw new BufferUnderflowException();
 
-
             if (order() != ByteOrder.nativeOrder())
                 Bits.copyToLongArray(ix(pos), dst,
-                                          offset << 3,
-                                          length << 3);
+                        offset << 3,
+                        length << 3);
             else
-
                 Bits.copyToArray(ix(pos), dst, arrayBaseOffset,
-                                 offset << 3,
-                                 length << 3);
+                        offset << 3,
+                        length << 3);
             position(pos + length);
         } else {
             super.get(dst, offset, length);
         }
         return this;
-
-
-
     }
-
 
 
     public LongBuffer put(long x) {
-
         unsafe.putLong(ix(nextPutIndex()), ((x)));
         return this;
-
-
-
     }
 
     public LongBuffer put(int i, long x) {
-
         unsafe.putLong(ix(checkIndex(i)), ((x)));
         return this;
-
-
-
     }
 
     public LongBuffer put(LongBuffer src) {
-
         if (src instanceof DirectLongBufferU) {
             if (src == this)
                 throw new IllegalArgumentException();
-            DirectLongBufferU sb = (DirectLongBufferU)src;
+            DirectLongBufferU sb = (DirectLongBufferU) src;
 
             int spos = sb.position();
             int slim = sb.limit();
@@ -333,7 +175,6 @@ class DirectLongBufferU
             sb.position(spos + srem);
             position(pos + srem);
         } else if (src.hb != null) {
-
             int spos = src.position();
             int slim = src.limit();
             assert (spos <= slim);
@@ -341,14 +182,10 @@ class DirectLongBufferU
 
             put(src.hb, src.offset + spos, srem);
             src.position(spos + srem);
-
         } else {
             super.put(src);
         }
         return this;
-
-
-
     }
 
     public LongBuffer put(long[] src, int offset, int length) {
@@ -361,23 +198,17 @@ class DirectLongBufferU
             int rem = (pos <= lim ? lim - pos : 0);
             if (length > rem)
                 throw new BufferOverflowException();
-
-
             if (order() != ByteOrder.nativeOrder())
                 Bits.copyFromLongArray(src, offset << 3,
-                                            ix(pos), length << 3);
+                        ix(pos), length << 3);
             else
-
                 Bits.copyFromArray(src, arrayBaseOffset, offset << 3,
-                                   ix(pos), length << 3);
+                        ix(pos), length << 3);
             position(pos + length);
         } else {
             super.put(src, offset, length);
         }
         return this;
-
-
-
     }
 
     public LongBuffer compact() {
@@ -392,9 +223,6 @@ class DirectLongBufferU
         limit(capacity());
         discardMark();
         return this;
-
-
-
     }
 
     public boolean isDirect() {
@@ -405,86 +233,9 @@ class DirectLongBufferU
         return false;
     }
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
     public ByteOrder order() {
-
-
-
-
-
         return ((ByteOrder.nativeOrder() != ByteOrder.BIG_ENDIAN)
                 ? ByteOrder.LITTLE_ENDIAN : ByteOrder.BIG_ENDIAN);
-
     }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 }
