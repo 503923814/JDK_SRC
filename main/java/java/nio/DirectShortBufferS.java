@@ -27,29 +27,19 @@
 
 package java.nio;
 
-import java.io.FileDescriptor;
 import sun.misc.Cleaner;
 import sun.misc.Unsafe;
-import sun.misc.VM;
 import sun.nio.ch.DirectBuffer;
 
 
-class DirectShortBufferS
-
-    extends ShortBuffer
-
-
-
-    implements DirectBuffer
-{
-
+class DirectShortBufferS extends ShortBuffer implements DirectBuffer {
 
 
     // Cached unsafe-access object
     protected static final Unsafe unsafe = Bits.unsafe();
 
     // Cached array base offset
-    private static final long arrayBaseOffset = (long)unsafe.arrayBaseOffset(short[].class);
+    private static final long arrayBaseOffset = (long) unsafe.arrayBaseOffset(short[].class);
 
     // Cached unaligned-access capability
     protected static final boolean unaligned = Bits.unaligned();
@@ -67,140 +57,19 @@ class DirectShortBufferS
         return att;
     }
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-    public Cleaner cleaner() { return null; }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+    public Cleaner cleaner() {
+        return null;
+    }
 
 
     // For duplicates and slices
     //
     DirectShortBufferS(DirectBuffer db,         // package-private
-                               int mark, int pos, int lim, int cap,
-                               int off)
-    {
-
+                       int mark, int pos, int lim, int cap,
+                       int off) {
         super(mark, pos, lim, cap);
         address = db.address() + off;
-
-
-
         att = db;
-
-
-
     }
 
     public ShortBuffer slice() {
@@ -215,26 +84,22 @@ class DirectShortBufferS
 
     public ShortBuffer duplicate() {
         return new DirectShortBufferS(this,
-                                              this.markValue(),
-                                              this.position(),
-                                              this.limit(),
-                                              this.capacity(),
-                                              0);
+                this.markValue(),
+                this.position(),
+                this.limit(),
+                this.capacity(),
+                0);
     }
 
     public ShortBuffer asReadOnlyBuffer() {
 
         return new DirectShortBufferRS(this,
-                                           this.markValue(),
-                                           this.position(),
-                                           this.limit(),
-                                           this.capacity(),
-                                           0);
-
-
-
+                this.markValue(),
+                this.position(),
+                this.limit(),
+                this.capacity(),
+                0);
     }
-
 
 
     public long address() {
@@ -254,11 +119,6 @@ class DirectShortBufferS
     }
 
 
-
-
-
-
-
     public ShortBuffer get(short[] dst, int offset, int length) {
 
         if ((length << 1) > Bits.JNI_COPY_TO_ARRAY_THRESHOLD) {
@@ -270,44 +130,30 @@ class DirectShortBufferS
             if (length > rem)
                 throw new BufferUnderflowException();
 
-
             if (order() != ByteOrder.nativeOrder())
                 Bits.copyToShortArray(ix(pos), dst,
-                                          offset << 1,
-                                          length << 1);
+                        offset << 1,
+                        length << 1);
             else
-
                 Bits.copyToArray(ix(pos), dst, arrayBaseOffset,
-                                 offset << 1,
-                                 length << 1);
+                        offset << 1,
+                        length << 1);
             position(pos + length);
         } else {
             super.get(dst, offset, length);
         }
         return this;
-
-
-
     }
-
 
 
     public ShortBuffer put(short x) {
-
         unsafe.putShort(ix(nextPutIndex()), Bits.swap((x)));
         return this;
-
-
-
     }
 
     public ShortBuffer put(int i, short x) {
-
         unsafe.putShort(ix(checkIndex(i)), Bits.swap((x)));
         return this;
-
-
-
     }
 
     public ShortBuffer put(ShortBuffer src) {
@@ -315,7 +161,7 @@ class DirectShortBufferS
         if (src instanceof DirectShortBufferS) {
             if (src == this)
                 throw new IllegalArgumentException();
-            DirectShortBufferS sb = (DirectShortBufferS)src;
+            DirectShortBufferS sb = (DirectShortBufferS) src;
 
             int spos = sb.position();
             int slim = sb.limit();
@@ -333,7 +179,6 @@ class DirectShortBufferS
             sb.position(spos + srem);
             position(pos + srem);
         } else if (src.hb != null) {
-
             int spos = src.position();
             int slim = src.limit();
             assert (spos <= slim);
@@ -346,9 +191,6 @@ class DirectShortBufferS
             super.put(src);
         }
         return this;
-
-
-
     }
 
     public ShortBuffer put(short[] src, int offset, int length) {
@@ -365,23 +207,19 @@ class DirectShortBufferS
 
             if (order() != ByteOrder.nativeOrder())
                 Bits.copyFromShortArray(src, offset << 1,
-                                            ix(pos), length << 1);
+                        ix(pos), length << 1);
             else
 
                 Bits.copyFromArray(src, arrayBaseOffset, offset << 1,
-                                   ix(pos), length << 1);
+                        ix(pos), length << 1);
             position(pos + length);
         } else {
             super.put(src, offset, length);
         }
         return this;
-
-
-
     }
 
     public ShortBuffer compact() {
-
         int pos = position();
         int lim = limit();
         assert (pos <= lim);
@@ -392,9 +230,6 @@ class DirectShortBufferS
         limit(capacity());
         discardMark();
         return this;
-
-
-
     }
 
     public boolean isDirect() {
@@ -405,86 +240,10 @@ class DirectShortBufferS
         return false;
     }
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
     public ByteOrder order() {
 
         return ((ByteOrder.nativeOrder() == ByteOrder.BIG_ENDIAN)
                 ? ByteOrder.LITTLE_ENDIAN : ByteOrder.BIG_ENDIAN);
-
-
-
-
-
     }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 }
