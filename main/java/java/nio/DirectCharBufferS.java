@@ -27,29 +27,17 @@
 
 package java.nio;
 
-import java.io.FileDescriptor;
 import sun.misc.Cleaner;
 import sun.misc.Unsafe;
-import sun.misc.VM;
 import sun.nio.ch.DirectBuffer;
 
-
-class DirectCharBufferS
-
-    extends CharBuffer
-
-
-
-    implements DirectBuffer
-{
-
-
+class DirectCharBufferS extends CharBuffer implements DirectBuffer {
 
     // Cached unsafe-access object
     protected static final Unsafe unsafe = Bits.unsafe();
 
     // Cached array base offset
-    private static final long arrayBaseOffset = (long)unsafe.arrayBaseOffset(char[].class);
+    private static final long arrayBaseOffset = (long) unsafe.arrayBaseOffset(char[].class);
 
     // Cached unaligned-access capability
     protected static final boolean unaligned = Bits.unaligned();
@@ -67,140 +55,18 @@ class DirectCharBufferS
         return att;
     }
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-    public Cleaner cleaner() { return null; }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+    public Cleaner cleaner() {
+        return null;
+    }
 
     // For duplicates and slices
     //
     DirectCharBufferS(DirectBuffer db,         // package-private
-                               int mark, int pos, int lim, int cap,
-                               int off)
-    {
-
+                      int mark, int pos, int lim, int cap,
+                      int off) {
         super(mark, pos, lim, cap);
         address = db.address() + off;
-
-
-
         att = db;
-
-
-
     }
 
     public CharBuffer slice() {
@@ -215,27 +81,22 @@ class DirectCharBufferS
 
     public CharBuffer duplicate() {
         return new DirectCharBufferS(this,
-                                              this.markValue(),
-                                              this.position(),
-                                              this.limit(),
-                                              this.capacity(),
-                                              0);
+                this.markValue(),
+                this.position(),
+                this.limit(),
+                this.capacity(),
+                0);
     }
 
     public CharBuffer asReadOnlyBuffer() {
 
         return new DirectCharBufferRS(this,
-                                           this.markValue(),
-                                           this.position(),
-                                           this.limit(),
-                                           this.capacity(),
-                                           0);
-
-
-
+                this.markValue(),
+                this.position(),
+                this.limit(),
+                this.capacity(),
+                0);
     }
-
-
 
     public long address() {
         return address;
@@ -270,52 +131,38 @@ class DirectCharBufferS
             if (length > rem)
                 throw new BufferUnderflowException();
 
-
             if (order() != ByteOrder.nativeOrder())
                 Bits.copyToCharArray(ix(pos), dst,
-                                          offset << 1,
-                                          length << 1);
+                        offset << 1,
+                        length << 1);
             else
-
                 Bits.copyToArray(ix(pos), dst, arrayBaseOffset,
-                                 offset << 1,
-                                 length << 1);
+                        offset << 1,
+                        length << 1);
+
             position(pos + length);
         } else {
             super.get(dst, offset, length);
         }
         return this;
-
-
-
     }
-
 
 
     public CharBuffer put(char x) {
-
         unsafe.putChar(ix(nextPutIndex()), Bits.swap((x)));
         return this;
-
-
-
     }
 
     public CharBuffer put(int i, char x) {
-
         unsafe.putChar(ix(checkIndex(i)), Bits.swap((x)));
         return this;
-
-
-
     }
 
     public CharBuffer put(CharBuffer src) {
-
         if (src instanceof DirectCharBufferS) {
             if (src == this)
                 throw new IllegalArgumentException();
-            DirectCharBufferS sb = (DirectCharBufferS)src;
+            DirectCharBufferS sb = (DirectCharBufferS) src;
 
             int spos = sb.position();
             int slim = sb.limit();
@@ -346,9 +193,6 @@ class DirectCharBufferS
             super.put(src);
         }
         return this;
-
-
-
     }
 
     public CharBuffer put(char[] src, int offset, int length) {
@@ -362,26 +206,20 @@ class DirectCharBufferS
             if (length > rem)
                 throw new BufferOverflowException();
 
-
             if (order() != ByteOrder.nativeOrder())
                 Bits.copyFromCharArray(src, offset << 1,
-                                            ix(pos), length << 1);
+                        ix(pos), length << 1);
             else
-
                 Bits.copyFromArray(src, arrayBaseOffset, offset << 1,
-                                   ix(pos), length << 1);
+                        ix(pos), length << 1);
             position(pos + length);
         } else {
             super.put(src, offset, length);
         }
         return this;
-
-
-
     }
 
     public CharBuffer compact() {
-
         int pos = position();
         int lim = limit();
         assert (pos <= lim);
@@ -392,9 +230,6 @@ class DirectCharBufferS
         limit(capacity());
         discardMark();
         return this;
-
-
-
     }
 
     public boolean isDirect() {
@@ -404,9 +239,6 @@ class DirectCharBufferS
     public boolean isReadOnly() {
         return false;
     }
-
-
-
 
     public String toString(int start, int end) {
         if ((end > limit()) || (start > end))
@@ -438,53 +270,16 @@ class DirectCharBufferS
         if ((start < 0) || (end > len) || (start > end))
             throw new IndexOutOfBoundsException();
         return new DirectCharBufferS(this,
-                                            -1,
-                                            pos + start,
-                                            pos + end,
-                                            capacity(),
-                                            offset);
+                -1,
+                pos + start,
+                pos + end,
+                capacity(),
+                offset);
     }
-
-
-
-
-
-
 
     public ByteOrder order() {
-
         return ((ByteOrder.nativeOrder() == ByteOrder.BIG_ENDIAN)
                 ? ByteOrder.LITTLE_ENDIAN : ByteOrder.BIG_ENDIAN);
-
-
-
-
-
     }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 }
